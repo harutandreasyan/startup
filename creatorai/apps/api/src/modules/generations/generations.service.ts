@@ -1,9 +1,15 @@
 import { Injectable, HttpException } from '@nestjs/common';
+import { InjectQueue } from '@nestjs/bullmq';
+import { Queue } from 'bullmq';
 import { PrismaService } from '../prisma/prisma.service';
+import { GENERATION_QUEUE, type GenerationJobData } from '../../config/queue';
 
 @Injectable()
 export class GenerationsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    @InjectQueue(GENERATION_QUEUE) private generationQueue: Queue<GenerationJobData>,
+  ) {}
 
   async create(userId: string, data: {
     type: string;
@@ -49,7 +55,7 @@ export class GenerationsService {
           prompt: data.prompt,
           negativePrompt: data.negativePrompt,
           inputImageUrl: data.inputImageUrl,
-          params: data.params || {},
+          params: (data.params || {}) as any,
           creditsCost: aiModel.creditCost,
           provider: aiModel.provider,
           status: 'QUEUED',
@@ -57,8 +63,11 @@ export class GenerationsService {
       });
     });
 
-    // TODO: Add to BullMQ queue for async processing
-    // await this.generationQueue.add('process', { generationId: generation.id });
+    await this.generationQueue.add(
+      'process',
+      { generationId: generation.id },
+      { attempts: 1, removeOnComplete: 100, removeOnFail: 100 },
+    );
 
     return generation;
   }

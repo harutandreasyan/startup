@@ -1,13 +1,25 @@
 import 'reflect-metadata';
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
+import { WsAdapter } from '@nestjs/platform-ws';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, { rawBody: true });
+  app.useWebSocketAdapter(new WsAdapter(app));
+
+  const allowedOrigins = (process.env.CORS_ORIGINS || 'http://localhost:5180').split(',');
+  const isDev = process.env.NODE_ENV !== 'production';
 
   app.enableCors({
-    origin: (process.env.CORS_ORIGINS || 'http://localhost:5173').split(','),
+    origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+      // Allow non-browser requests (curl, mobile apps) with no origin
+      if (!origin) return callback(null, true);
+      // In dev, allow any localhost port (Vite may pick 5181, 5182, ...)
+      if (isDev && /^http:\/\/localhost:\d+$/.test(origin)) return callback(null, true);
+      if (allowedOrigins.includes(origin)) return callback(null, true);
+      return callback(new Error(`Origin ${origin} not allowed by CORS`));
+    },
     credentials: true,
   });
 

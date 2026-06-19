@@ -16,37 +16,39 @@ async function main() {
   // AI models
   await prisma.aiModel.createMany({
     data: [
+      // --- FREE models (Pollinations.ai — no API key, no billing) ---
       {
         slug: 'flux-schnell',
-        name: 'Flux Schnell',
-        provider: 'replicate',
-        providerModelId: 'black-forest-labs/flux-schnell',
+        name: 'Flux (Free)',
+        provider: 'pollinations',
+        providerModelId: 'flux',
         type: 'TEXT_TO_IMAGE',
         creditCost: 2,
-        description: 'Fast image generation, great for quick iterations',
-        tags: ['fast', 'image'],
+        description: 'Fast, free image generation — great for quick iterations',
+        tags: ['fast', 'image', 'free'],
         sortOrder: 0,
       },
       {
+        slug: 'turbo',
+        name: 'Turbo (Free)',
+        provider: 'pollinations',
+        providerModelId: 'turbo',
+        type: 'TEXT_TO_IMAGE',
+        creditCost: 1,
+        description: 'Fastest free image generation',
+        tags: ['fast', 'image', 'free'],
+        sortOrder: 1,
+      },
+      // --- PAID models (Replicate — require billing at replicate.com/account/billing) ---
+      {
         slug: 'flux-dev',
-        name: 'Flux Dev',
+        name: 'Flux Dev (Premium)',
         provider: 'replicate',
         providerModelId: 'black-forest-labs/flux-dev',
         type: 'TEXT_TO_IMAGE',
         creditCost: 4,
-        description: 'Higher quality image generation',
-        tags: ['quality', 'image'],
-        sortOrder: 1,
-      },
-      {
-        slug: 'sdxl',
-        name: 'Stable Diffusion XL',
-        provider: 'replicate',
-        providerModelId: 'stability-ai/sdxl:7762fd07cf82c948538e41f63f77d685e02b063e37e496e96eefd46c929f9bdc',
-        type: 'TEXT_TO_IMAGE',
-        creditCost: 3,
-        description: 'Versatile image generation with fine-tuning support',
-        tags: ['versatile', 'image'],
+        description: 'Higher quality image generation (requires Replicate billing)',
+        tags: ['quality', 'image', 'premium'],
         sortOrder: 2,
       },
       {

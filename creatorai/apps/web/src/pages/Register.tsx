@@ -7,15 +7,17 @@ export function Register() {
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [error, setError] = useState('');
+  const [info, setInfo] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setInfo('');
     setLoading(true);
 
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: { data: { full_name: name } },
@@ -24,8 +26,13 @@ export function Register() {
     if (error) {
       setError(error.message);
       setLoading(false);
-    } else {
+    } else if (data.session) {
+      // Auto-confirm is on — we have a session, go straight in
       navigate('/dashboard');
+    } else {
+      // Email confirmation is required — no session yet
+      setInfo('Account created! Check your email to confirm, then sign in.');
+      setLoading(false);
     }
   };
 
@@ -65,6 +72,11 @@ export function Register() {
             {error && (
               <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm">
                 {error}
+              </div>
+            )}
+            {info && (
+              <div className="p-3 bg-green-500/10 border border-green-500/20 rounded-lg text-green-400 text-sm">
+                {info}
               </div>
             )}
 

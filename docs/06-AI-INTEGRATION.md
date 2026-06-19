@@ -1,5 +1,30 @@
 # 06 — AI Model Integration
 
+## Provider Tiers: Free (now) vs Paid (future)
+
+To develop without spending money, the app currently uses **Pollinations.ai** for
+text-to-image — it's **free, needs no API key, and no billing**. Paid providers
+(Replicate, Fal.ai) are wired up and ready but require account credit.
+
+| Provider | Cost | Capabilities | Status |
+|----------|------|-------------|--------|
+| **Pollinations.ai** | Free | Text-to-image only | ✅ Active (default for images) |
+| **Replicate** | Pay-per-use (needs billing) | Image, video, 3D, bg-removal, upscale | ⏳ Wired up; enable when ready |
+| **Fal.ai** | Pay-per-use | Image, fast video | 📋 Planned |
+
+### 🔮 FUTURE TASK — Enable paid Replicate models
+When ready to offer premium quality / video / 3D / editing:
+1. Add billing at **https://replicate.com/account/billing** (start with $5–10)
+2. Wait ~3–5 min after purchasing credit
+3. The `flux-dev` model (and any `provider='replicate'` model) will start working
+4. To switch any model between providers, just update its `provider` and
+   `providerModelId` columns in the `AiModel` table — no code change needed
+5. Video (Kling/Wan) and 3D (TripoSR) models have **no free option** — they
+   require Replicate/Fal billing. Add them to the catalog once billing is on.
+
+> The provider abstraction (`ai-providers.service.ts`) means swapping or adding
+> providers never touches the generation logic, queue, or frontend.
+
 ## Provider Abstraction Layer
 
 Never call AI providers directly from controllers. Use an abstraction so you can swap providers without touching business logic.
