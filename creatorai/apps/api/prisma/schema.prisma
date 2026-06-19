@@ -1,0 +1,248 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String     @id @default(cuid())
+  email         String     @unique
+  passwordHash  String?
+  name          String?
+  avatarUrl     String?
+  provider      AuthProvider @default(EMAIL)
+  providerId    String?
+
+  creditBalance Int        @default(0)
+
+  role          UserRole   @default(USER)
+  status        UserStatus @default(ACTIVE)
+
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  lastLoginAt   DateTime?
+
+  generations   Generation[]
+  creditTxs     CreditTransaction[]
+  subscriptions Subscription[]
+  payments      Payment[]
+
+  @@index([email])
+  @@index([provider, providerId])
+}
+
+enum AuthProvider {
+  EMAIL
+  GOOGLE
+  APPLE
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+  DELETED
+}
+
+model Generation {
+  id             String           @id @default(cuid())
+  userId         String
+  user           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type           GenerationType
+  status         GenerationStatus @default(QUEUED)
+
+  prompt         String?
+  negativePrompt String?
+  inputImageUrl  String?
+  model          String
+  params         Json             @default("{}")
+
+  outputUrls     String[]         @default([])
+  thumbnailUrl   String?
+
+  creditsCost    Int
+  provider       String
+  providerJobId  String?
+  errorMessage   String?
+  processingMs   Int?
+
+  flagged        Boolean          @default(false)
+
+  createdAt      DateTime         @default(now())
+  completedAt    DateTime?
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([status])
+  @@index([providerJobId])
+}
+
+enum GenerationType {
+  TEXT_TO_IMAGE
+  IMAGE_TO_IMAGE
+  TEXT_TO_VIDEO
+  IMAGE_TO_VIDEO
+  TEXT_TO_3D
+  BACKGROUND_REMOVAL
+  UPSCALE
+  INPAINT
+  STYLE_TRANSFER
+}
+
+enum GenerationStatus {
+  QUEUED
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+model CreditTransaction {
+  id           String       @id @default(cuid())
+  userId       String
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  amount       Int
+  type         CreditTxType
+  description  String
+
+  generationId String?
+  paymentId    String?
+
+  balanceAfter Int
+
+  createdAt    DateTime     @default(now())
+
+  @@index([userId, createdAt(sort: Desc)])
+}
+
+enum CreditTxType {
+  PURCHASE
+  SUBSCRIPTION
+  GENERATION_DEBIT
+  GENERATION_REFUND
+  BONUS
+  ADMIN_ADJUSTMENT
+}
+
+model Payment {
+  id                String        @id @default(cuid())
+  userId            String
+  user              User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  amount            Int
+  currency          String        @default("USD")
+  status            PaymentStatus @default(PENDING)
+
+  provider          PaymentProvider
+  providerPaymentId String?       @unique
+
+  productType       ProductType
+  productId         String?
+  creditsGranted    Int?
+
+  metadata          Json?
+
+  createdAt         DateTime      @default(now())
+  completedAt       DateTime?
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([providerPaymentId])
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+enum PaymentProvider {
+  STRIPE
+  APP_STORE
+  PLAY_STORE
+}
+
+enum ProductType {
+  CREDIT_PACK
+  SUBSCRIPTION
+}
+
+model Subscription {
+  id                 String             @id @default(cuid())
+  userId             String
+  user               User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  plan               SubscriptionPlan
+  status             SubscriptionStatus @default(ACTIVE)
+
+  provider           PaymentProvider
+  providerSubId      String?            @unique
+
+  currentPeriodStart DateTime
+  currentPeriodEnd   DateTime
+  cancelledAt        DateTime?
+
+  monthlyCredits     Int
+
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  @@index([userId])
+  @@index([status, currentPeriodEnd])
+}
+
+enum SubscriptionPlan {
+  FREE
+  PRO
+  BUSINESS
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELLED
+  PAST_DUE
+  EXPIRED
+}
+
+model CreditPack {
+  id                 String  @id @default(cuid())
+  name               String
+  credits            Int
+  priceUsd           Int
+  active             Boolean @default(true)
+  sortOrder          Int     @default(0)
+
+  stripeProductId    String?
+  appStoreProductId  String?
+  playStoreProductId String?
+}
+
+model AiModel {
+  id              String         @id @default(cuid())
+  slug            String         @unique
+  name            String
+  provider        String
+  providerModelId String
+  type            GenerationType
+  creditCost      Int
+  active          Boolean        @default(true)
+
+  description     String?
+  thumbnailUrl    String?
+  tags            String[]       @default([])
+
+  paramsSchema    Json?
+
+  sortOrder       Int            @default(0)
+  createdAt       DateTime       @default(now())
+
+  @@index([type, active])
+}

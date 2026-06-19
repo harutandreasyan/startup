@@ -1,0 +1,26 @@
+{
+  "name": "creatorai",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npx turbo dev",
+    "dev:web": "npx turbo dev --filter=web",
+    "dev:api": "npx turbo dev --filter=api",
+    "build": "npx turbo build",
+    "lint": "npx turbo lint",
+    "clean": "npx turbo clean"
+  },
+  "devDependencies": {
+    "@types/node": "^26.0.0",
+    "turbo": "^2.9.18",
+    "typescript": "^6.0.3"
+  },
+  "packageManager": "npm@10.9.2",
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
