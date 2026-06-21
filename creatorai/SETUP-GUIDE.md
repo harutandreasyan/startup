@@ -180,8 +180,9 @@ Open **http://localhost:5180** in your browser. 🎉
 ## PART 8 — Test It End-to-End
 
 1. Click **"Get Started Free"**
-2. Register with any email + password (8+ chars)
+2. Register with a **username** + email + password (8+ chars)
 3. You land on the **Dashboard** with **20 free credits** 💎
+   - You can sign in later with **either your username or your email**
 4. Click **Generate** → select **"Flux (Free)"** → type a prompt like *"a fox in a snowy forest, cinematic"*
 5. Click **Generate** → watch it go Queued → Processing → Result appears
    - ✅ Uses **Pollinations.ai** — free, no billing needed

@@ -1,37 +1,32 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { registerWithUsername } from '@creatorai/api-client';
 import { supabase } from '../lib/supabase';
+import { apiErrorMessage } from '../lib/apiError';
 
 export function Register() {
   const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [error, setError] = useState('');
-  const [info, setInfo] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    setInfo('');
     setLoading(true);
 
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: { data: { full_name: name } },
-    });
-
-    if (error) {
-      setError(error.message);
-      setLoading(false);
-    } else if (data.session) {
-      // Auto-confirm is on — we have a session, go straight in
+    try {
+      const tokens = await registerWithUsername({ email, username, password, name });
+      await supabase.auth.setSession({
+        access_token: tokens.access_token,
+        refresh_token: tokens.refresh_token,
+      });
       navigate('/dashboard');
-    } else {
-      // Email confirmation is required — no session yet
-      setInfo('Account created! Check your email to confirm, then sign in.');
+    } catch (err) {
+      setError(apiErrorMessage(err, 'Could not create account.'));
       setLoading(false);
     }
   };
@@ -74,11 +69,6 @@ export function Register() {
                 {error}
               </div>
             )}
-            {info && (
-              <div className="p-3 bg-green-500/10 border border-green-500/20 rounded-lg text-green-400 text-sm">
-                {info}
-              </div>
-            )}
 
             <div>
               <label className="block text-sm text-gray-300 mb-1">Name</label>
@@ -87,6 +77,19 @@ export function Register() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 className="w-full px-3 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-indigo-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm text-gray-300 mb-1">Username</label>
+              <input
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                autoCapitalize="none"
+                placeholder="3-20 letters, numbers, or _"
+                className="w-full px-3 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-indigo-500"
+                required
               />
             </div>
 

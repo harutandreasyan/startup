@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { loginWithLogin } from '@creatorai/api-client';
 import { supabase } from '../lib/supabase';
+import { apiErrorMessage } from '../lib/apiError';
 
 export function Login() {
-  const [email, setEmail] = useState('');
+  const [login, setLogin] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -14,12 +16,16 @@ export function Login() {
     setError('');
     setLoading(true);
 
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) {
-      setError(error.message);
-      setLoading(false);
-    } else {
+    try {
+      const tokens = await loginWithLogin(login, password);
+      await supabase.auth.setSession({
+        access_token: tokens.access_token,
+        refresh_token: tokens.refresh_token,
+      });
       navigate('/dashboard');
+    } catch (err) {
+      setError(apiErrorMessage(err, 'Invalid login or password.'));
+      setLoading(false);
     }
   };
 
@@ -63,11 +69,12 @@ export function Login() {
             )}
 
             <div>
-              <label className="block text-sm text-gray-300 mb-1">Email</label>
+              <label className="block text-sm text-gray-300 mb-1">Email or username</label>
               <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                type="text"
+                value={login}
+                onChange={(e) => setLogin(e.target.value)}
+                autoCapitalize="none"
                 className="w-full px-3 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-indigo-500"
                 required
               />
