@@ -23,6 +23,8 @@ import { Button } from '../components/common/Button';
 import { ConfirmModal } from '../components/common/ConfirmModal';
 import { Modal } from '../components/common/Modal';
 import { toast } from '../stores/toast.store';
+import { useStyles } from '../lib/useStyles';
+import { galleryStyles } from './Gallery.styles';
 
 const gridContainer: Variants = { hidden: {}, show: { transition: { staggerChildren: 0.04 } } };
 const gridItem: Variants = {
@@ -104,31 +106,33 @@ export function Gallery() {
     { label: 'Delete', icon: Trash2, action: () => setConfirmDeleteGen(gen), danger: true },
   ];
 
+  const s = useStyles(galleryStyles);
+
   return (
-    <div className="space-y-6">
+    <div className={s.root}>
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Gallery</h1>
-        <p className="text-muted mt-1">Everything you've created, in one place.</p>
+        <h1 className={s.title}>Gallery</h1>
+        <p className={s.subtitle}>Everything you've created, in one place.</p>
       </div>
 
       {isLoading && (
-        <div className="flex items-center justify-center py-20 text-muted">
-          <Loader2 className="h-6 w-6 animate-spin" />
+        <div className={s.loadingWrap}>
+          <Loader2 className={s.loadingIcon} />
         </div>
       )}
 
       {!isLoading && generations.length === 0 && (
-        <Card className="p-10 sm:p-16 flex flex-col items-center text-center">
-          <div className="h-12 w-12 rounded-2xl bg-surface-2 flex items-center justify-center mb-3">
-            <ImagesIcon className="h-6 w-6 text-muted" />
+        <Card className={s.emptyCard}>
+          <div className={s.emptyIconWrap}>
+            <ImagesIcon className={s.emptyIcon} />
           </div>
-          <p className="text-muted text-sm">Your generations will appear here.</p>
+          <p className={s.emptyText}>Your generations will appear here.</p>
           <Link
             to="/generate"
-            className="mt-4 btn-glow inline-flex items-center gap-2 px-4 py-2 rounded-xl text-white text-sm font-medium"
+            className={s.emptyLink}
           >
-            <span className="relative z-10 inline-flex items-center gap-2">
-              <Sparkles className="h-4 w-4" /> Create something
+            <span className={s.emptyLinkInner}>
+              <Sparkles className={s.emptyLinkIcon} /> Create something
             </span>
           </Link>
         </Card>
@@ -139,7 +143,7 @@ export function Gallery() {
           variants={gridContainer}
           initial="hidden"
           animate="show"
-          className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4"
+          className={s.grid}
         >
           {generations.map((g) => {
             const ready = g.status === 'COMPLETED' && !!g.thumbnailUrl;
@@ -149,17 +153,17 @@ export function Gallery() {
                 variants={gridItem}
                 whileHover={{ y: -4 }}
                 onClick={() => ready && setPreview(g)}
-                className="group relative aspect-square rounded-2xl overflow-hidden border border-border bg-surface-2 cursor-pointer transition-colors hover:border-primary/40"
+                className={s.gridItem}
               >
                 {ready ? (
                   <img
                     src={g.thumbnailUrl!}
                     alt={g.prompt || ''}
-                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    className={s.gridImg}
                   />
                 ) : (
-                  <div className="w-full h-full flex flex-col items-center justify-center gap-1 text-xs text-muted">
-                    <Loader2 className="h-4 w-4 animate-spin" />
+                  <div className={s.processing}>
+                    <Loader2 className={s.processingIcon} />
                     Processing
                   </div>
                 )}
@@ -169,9 +173,9 @@ export function Gallery() {
                     <button
                       onClick={(e) => openMenu(e, g)}
                       aria-label="More options"
-                      className="absolute top-2 right-2 h-8 w-8 inline-flex items-center justify-center rounded-lg bg-black/45 backdrop-blur text-white opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity hover:bg-black/65"
+                      className={s.menuBtn}
                     >
-                      <MoreVertical className="h-4 w-4" />
+                      <MoreVertical className={s.menuBtnIcon} />
                     </button>
                     <button
                       onClick={(e) => {
@@ -180,9 +184,9 @@ export function Gallery() {
                       }}
                       aria-label="Download"
                       title="Download"
-                      className="absolute bottom-2 right-2 h-8 w-8 inline-flex items-center justify-center rounded-lg bg-black/45 backdrop-blur text-white opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity hover:bg-black/65"
+                      className={s.downloadBtn}
                     >
-                      <Download className="h-4 w-4" />
+                      <Download className={s.downloadBtnIcon} />
                     </button>
                   </>
                 )}
@@ -196,9 +200,9 @@ export function Gallery() {
       {menu &&
         createPortal(
           <>
-            <div className="fixed inset-0 z-[90]" onClick={() => setMenu(null)} />
+            <div className={s.dropdownOverlay} onClick={() => setMenu(null)} />
             <div
-              className="fixed z-[91] w-44 rounded-xl p-1.5 bg-surface-solid border border-border shadow-2xl backdrop-blur-xl animate-scale-in"
+              className={s.dropdown}
               style={{ top: menu.top, right: menu.right }}
             >
               {menuItems(menu.gen).map((item) => (
@@ -208,11 +212,9 @@ export function Gallery() {
                     item.action();
                     setMenu(null);
                   }}
-                  className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors ${
-                    item.danger ? 'text-danger hover:bg-danger/10' : 'text-foreground hover:bg-foreground/[0.06]'
-                  }`}
+                  className={s.dropdownItem(item.danger)}
                 >
-                  <item.icon className="h-4 w-4" />
+                  <item.icon className={s.dropdownItemIcon} />
                   {item.label}
                 </button>
               ))}
@@ -225,42 +227,42 @@ export function Gallery() {
       {preview &&
         createPortal(
           <div
-            className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-md flex flex-col p-4 animate-fade-in"
+            className={s.previewOverlay}
             onClick={() => setPreview(null)}
           >
-            <div className="flex justify-end shrink-0">
+            <div className={s.previewClose}>
               <button
                 onClick={() => setPreview(null)}
                 aria-label="Close"
-                className="h-10 w-10 inline-flex items-center justify-center rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition-colors"
+                className={s.previewCloseBtn}
               >
-                <X className="h-5 w-5" />
+                <X className={s.previewCloseIcon} />
               </button>
             </div>
             <div
-              className="flex-1 min-h-0 flex items-center justify-center"
+              className={s.previewImgWrap}
               onClick={(e) => e.stopPropagation()}
             >
               <img
                 src={preview.outputUrls[0]}
                 alt={preview.prompt || ''}
-                className="max-h-full max-w-full object-contain rounded-2xl animate-scale-in"
+                className={s.previewImg}
               />
             </div>
-            <div className="shrink-0 flex items-center justify-center gap-2 sm:gap-2.5 pt-4" onClick={(e) => e.stopPropagation()}>
-              <Button onClick={() => downloadImage(preview.outputUrls[0], preview.id)} leftIcon={<Download className="h-4 w-4" />}>
-                <span className="hidden sm:inline">Download</span>
+            <div className={s.previewActions} onClick={(e) => e.stopPropagation()}>
+              <Button onClick={() => downloadImage(preview.outputUrls[0], preview.id)} leftIcon={<Download className={s.previewActionIcon} />}>
+                <span className={s.previewActionInline}>Download</span>
               </Button>
               <a href={preview.outputUrls[0]} target="_blank" rel="noopener noreferrer">
-                <Button variant="secondary" leftIcon={<ExternalLink className="h-4 w-4" />}>
-                  <span className="hidden sm:inline">Open</span>
+                <Button variant="secondary" leftIcon={<ExternalLink className={s.previewActionIcon} />}>
+                  <span className={s.previewActionInline}>Open</span>
                 </Button>
               </a>
-              <Button variant="secondary" onClick={() => setDetails(preview)} leftIcon={<Info className="h-4 w-4" />}>
-                <span className="hidden sm:inline">Details</span>
+              <Button variant="secondary" onClick={() => setDetails(preview)} leftIcon={<Info className={s.previewActionIcon} />}>
+                <span className={s.previewActionInline}>Details</span>
               </Button>
-              <Button variant="danger" onClick={() => setConfirmDeleteGen(preview)} leftIcon={<Trash2 className="h-4 w-4" />}>
-                <span className="hidden sm:inline">Delete</span>
+              <Button variant="danger" onClick={() => setConfirmDeleteGen(preview)} leftIcon={<Trash2 className={s.previewActionIcon} />}>
+                <span className={s.previewActionInline}>Delete</span>
               </Button>
             </div>
           </div>,
@@ -270,10 +272,10 @@ export function Gallery() {
       {/* Details modal */}
       <Modal open={!!details} onClose={() => setDetails(null)} title="Details">
         {details && (
-          <div className="px-5 pb-5 pt-2 space-y-4">
+          <div className={s.modalBody}>
             {details.prompt && <Detail label="Prompt" value={details.prompt} copyable />}
             {details.negativePrompt && <Detail label="Negative prompt" value={details.negativePrompt} copyable />}
-            <div className="h-px bg-border" />
+            <div className={s.modalDivider} />
             <Detail label="Type" value={details.type.replaceAll('_', ' ').toLowerCase()} />
             <Detail label="Model" value={details.model} />
             <Detail label="Cost" value={`${details.creditsCost} credits`} />
@@ -298,6 +300,7 @@ export function Gallery() {
 
 function Detail({ label, value, copyable }: { label: string; value: string; copyable?: boolean }) {
   const [copied, setCopied] = useState(false);
+  const s = useStyles(galleryStyles);
 
   const copy = async () => {
     try {
@@ -312,21 +315,21 @@ function Detail({ label, value, copyable }: { label: string; value: string; copy
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-1">
-        <p className="text-xs text-muted uppercase tracking-wider">{label}</p>
+      <div className={s.detailHeader}>
+        <p className={s.detailLabel}>{label}</p>
         {copyable && (
           <button
             onClick={copy}
             aria-label={`Copy ${label.toLowerCase()}`}
             title="Copy"
-            className="inline-flex items-center gap-1 text-xs text-muted hover:text-primary transition-colors"
+            className={s.detailCopyBtn}
           >
-            {copied ? <Check className="h-3.5 w-3.5 text-success" /> : <Copy className="h-3.5 w-3.5" />}
+            {copied ? <Check className={s.detailCheckIcon} /> : <Copy className={s.detailCopyIcon} />}
             {copied ? 'Copied' : 'Copy'}
           </button>
         )}
       </div>
-      <p className="text-sm break-words">{value}</p>
+      <p className={s.detailValue}>{value}</p>
     </div>
   );
 }

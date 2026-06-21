@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { ZoomIn } from 'lucide-react';
 import { Modal } from './Modal';
 import { Button } from './Button';
+import { useStyles } from '../../lib/useStyles';
+import { avatarCropperStyles } from './AvatarCropper.styles';
 
 const BOX = 256; // crop viewport (px)
 const OUT = 256; // output resolution (px)
@@ -14,6 +16,7 @@ interface AvatarCropperProps {
 }
 
 export function AvatarCropper({ file, saving, onCancel, onApply }: AvatarCropperProps) {
+  const s = useStyles(avatarCropperStyles);
   const [img, setImg] = useState<HTMLImageElement | null>(null);
   const [zoom, setZoom] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
@@ -82,9 +85,9 @@ export function AvatarCropper({ file, saving, onCancel, onApply }: AvatarCropper
 
   return (
     <Modal open onClose={onCancel} title="Adjust photo">
-      <div className="px-5 pb-5 pt-2 flex flex-col items-center">
+      <div className={s.body}>
         <div
-          className="relative rounded-full overflow-hidden border-2 border-primary/40 touch-none select-none bg-surface-2"
+          className={s.cropBox}
           style={{ width: BOX, height: BOX, maxWidth: '70vw', maxHeight: '70vw' }}
           onPointerDown={onPointerDown}
           onPointerMove={onPointerMove}
@@ -95,7 +98,7 @@ export function AvatarCropper({ file, saving, onCancel, onApply }: AvatarCropper
               src={img.src}
               alt="Crop preview"
               draggable={false}
-              className="absolute cursor-grab active:cursor-grabbing"
+              className={s.cropImg}
               // maxWidth/maxHeight 'none' overrides Tailwind's base `img { max-width:100% }`,
               // which would otherwise cap width and break the aspect ratio while zooming.
               style={{ width: dispW, height: dispH, left: centerX, top: centerY, maxWidth: 'none', maxHeight: 'none' }}
@@ -103,10 +106,10 @@ export function AvatarCropper({ file, saving, onCancel, onApply }: AvatarCropper
           )}
         </div>
 
-        <p className="text-xs text-muted mt-3">Drag to reposition</p>
+        <p className={s.hint}>Drag to reposition</p>
 
-        <div className="flex items-center gap-3 w-full mt-3 max-w-xs">
-          <ZoomIn className="h-4 w-4 text-muted shrink-0" />
+        <div className={s.sliderRow}>
+          <ZoomIn className={s.sliderIcon} />
           <input
             type="range"
             min={1}
@@ -114,11 +117,11 @@ export function AvatarCropper({ file, saving, onCancel, onApply }: AvatarCropper
             step={0.01}
             value={zoom}
             onChange={(e) => onZoomChange(Number(e.target.value))}
-            className="w-full accent-[var(--primary)]"
+            className={s.slider}
           />
         </div>
 
-        <div className="flex gap-3 mt-6 w-full">
+        <div className={s.actions}>
           <Button variant="ghost" fullWidth onClick={onCancel} disabled={saving}>
             Cancel
           </Button>

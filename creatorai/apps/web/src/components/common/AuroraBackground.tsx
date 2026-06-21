@@ -1,11 +1,15 @@
+import { useStyles } from '../../lib/useStyles';
+import { auroraBackgroundStyles } from './AuroraBackground.styles';
+
 /** Animated aurora/mesh backdrop with fine grain. Sits behind all content. */
 export function AuroraBackground() {
+  const s = useStyles(auroraBackgroundStyles);
   return (
-    <div className="aurora" aria-hidden>
-      <div className="aurora__blob aurora__blob--1" />
-      <div className="aurora__blob aurora__blob--2" />
-      <div className="aurora__blob aurora__blob--3" />
-      <div className="aurora__grain" />
+    <div className={s.aurora} aria-hidden>
+      <div className={s.blob1} />
+      <div className={s.blob2} />
+      <div className={s.blob3} />
+      <div className={s.grain} />
     </div>
   );
 }

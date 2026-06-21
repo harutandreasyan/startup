@@ -1,4 +1,6 @@
 import type { HTMLAttributes } from 'react';
+import { useStyles } from '../../lib/useStyles';
+import { makeCardStyles } from './Card.styles';
 
 interface CardProps extends HTMLAttributes<HTMLDivElement> {
   hover?: boolean;
@@ -7,11 +9,10 @@ interface CardProps extends HTMLAttributes<HTMLDivElement> {
 
 /** Glassmorphic surface. `glow` adds a gradient border that lights on hover. */
 export function Card({ hover = false, glow = false, className = '', children, ...props }: CardProps) {
+  const s = useStyles(() => makeCardStyles(hover, glow, className), [hover, glow, className]);
   return (
     <div
-      className={`glass rounded-2xl ${glow ? 'glow-border' : ''} ${
-        hover ? 'transition-transform duration-300 hover:-translate-y-0.5' : ''
-      } ${className}`}
+      className={s.card}
       {...props}
     >
       {children}

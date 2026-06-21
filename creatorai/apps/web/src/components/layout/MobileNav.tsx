@@ -1,23 +1,23 @@
 import { NavLink } from 'react-router-dom';
+import { useStyles } from '../../lib/useStyles';
 import { NAV_ITEMS } from './navItems';
+import { mobileNavStyles } from './MobileNav.styles';
 
 export function MobileNav() {
+  const s = useStyles(mobileNavStyles);
+
   return (
-    <nav className="lg:hidden fixed bottom-0 inset-x-0 z-30 border-t border-border bg-surface/90 backdrop-blur-xl pb-[env(safe-area-inset-bottom)]">
-      <div className="grid grid-cols-5">
+    <nav className={s.nav}>
+      <div className={s.grid}>
         {NAV_ITEMS.map((item) => (
           <NavLink
             key={item.to}
             to={item.to}
-            className={({ isActive }) =>
-              `flex flex-col items-center justify-center gap-1 py-2.5 text-[11px] font-medium transition-colors ${
-                isActive ? 'text-primary' : 'text-muted hover:text-foreground'
-              }`
-            }
+            className={({ isActive }) => s.link(isActive)}
           >
             {({ isActive }) => (
               <>
-                <item.icon className="h-5 w-5" strokeWidth={isActive ? 2.5 : 2} />
+                <item.icon className={s.icon} strokeWidth={isActive ? 2.5 : 2} />
                 {item.label}
               </>
             )}

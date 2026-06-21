@@ -1,6 +1,8 @@
 import type { ReactNode } from 'react';
 import { Modal } from './Modal';
 import { Button } from './Button';
+import { useStyles } from '../../lib/useStyles';
+import { confirmModalStyles } from './ConfirmModal.styles';
 
 interface ConfirmModalProps {
   open: boolean;
@@ -25,11 +27,12 @@ export function ConfirmModal({
   onConfirm,
   onCancel,
 }: ConfirmModalProps) {
+  const s = useStyles(confirmModalStyles);
   return (
     <Modal open={open} onClose={onCancel} title={title} showClose>
-      <div className="px-5 pt-3 pb-5">
-        {description && <p className="text-sm text-muted leading-relaxed">{description}</p>}
-        <div className="flex gap-3 mt-6">
+      <div className={s.body}>
+        {description && <p className={s.description}>{description}</p>}
+        <div className={s.actions}>
           <Button variant="ghost" fullWidth onClick={onCancel} disabled={loading}>
             {cancelLabel}
           </Button>
@@ -37,9 +40,9 @@ export function ConfirmModal({
             <button
               onClick={onConfirm}
               disabled={loading}
-              className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-danger text-white text-sm font-medium hover:opacity-90 disabled:opacity-50 transition-opacity active:scale-[0.97]"
+              className={s.dangerBtn}
             >
-              {loading && <span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />}
+              {loading && <span className={s.spinner} />}
               {confirmLabel}
             </button>
           ) : (

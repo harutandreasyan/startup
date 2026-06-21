@@ -8,8 +8,11 @@ import { useAuthStore } from '../stores/auth.store';
 import { apiErrorMessage } from '../lib/apiError';
 import { Card } from '../components/common/Card';
 import { Button } from '../components/common/Button';
+import { useStyles } from '../lib/useStyles';
+import { creditsStyles } from './Credits.styles';
 
 export function Credits() {
+  const s = useStyles(creditsStyles);
   const user = useAuthStore((s) => s.user);
   const [searchParams] = useSearchParams();
   const status = searchParams.get('status');
@@ -46,16 +49,16 @@ export function Credits() {
   };
 
   return (
-    <div className="space-y-8">
-      <div className="flex flex-wrap items-end justify-between gap-3">
+    <div className={s.root}>
+      <div className={s.header}>
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Credits & Plans</h1>
-          <p className="text-muted mt-1">Power your creativity.</p>
+          <h1 className={s.title}>Credits & Plans</h1>
+          <p className={s.subtitle}>Power your creativity.</p>
         </div>
-        <span className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-surface-2 border border-border">
-          <Gem className="h-4 w-4 text-primary" />
-          <span className="font-semibold">{user?.creditBalance ?? 0}</span>
-          <span className="text-muted text-sm">credits</span>
+        <span className={s.balancePill}>
+          <Gem className={s.balanceGem} />
+          <span className={s.balanceValue}>{user?.creditBalance ?? 0}</span>
+          <span className={s.balanceLabel}>credits</span>
         </span>
       </div>
 
@@ -66,8 +69,8 @@ export function Credits() {
 
       {/* Plans */}
       <section>
-        <h2 className="text-sm font-semibold text-muted uppercase tracking-wider mb-3">Subscription plans</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <h2 className={s.sectionHeading}>Subscription plans</h2>
+        <div className={s.planGrid}>
           {(['FREE', 'PRO', 'BUSINESS'] as const).map((planKey) => {
             const plan = PLANS[planKey];
             const isCurrent = currentPlan === planKey;
@@ -76,37 +79,35 @@ export function Credits() {
             return (
               <Card
                 key={planKey}
-                className={`p-6 relative flex flex-col ${
-                  isCurrent ? 'border-primary ring-1 ring-primary/30' : ''
-                } ${featured && !isCurrent ? 'border-primary/30' : ''}`}
+                className={s.planCard(isCurrent, featured)}
               >
                 {featured && (
-                  <span className="absolute -top-2.5 left-6 px-2.5 py-0.5 rounded-full bg-primary text-primary-foreground text-[11px] font-semibold">
+                  <span className={s.popularBadge}>
                     Popular
                   </span>
                 )}
-                <div className="flex items-center justify-between">
-                  <h3 className="font-semibold text-lg">{plan.name}</h3>
+                <div className={s.planHead}>
+                  <h3 className={s.planName}>{plan.name}</h3>
                   {isCurrent && (
-                    <span className="text-[11px] px-2 py-0.5 rounded-full bg-primary/15 text-primary font-medium">Current</span>
+                    <span className={s.currentBadge}>Current</span>
                   )}
                 </div>
-                <p className="mt-2 text-3xl font-bold tracking-tight">
+                <p className={s.planPrice}>
                   ${(plan.priceUsd / 100).toFixed(0)}
-                  <span className="text-sm font-normal text-muted">/mo</span>
+                  <span className={s.planPriceUnit}>/mo</span>
                 </p>
-                <p className="text-sm text-primary mt-1 mb-5">{plan.monthlyCredits} credits / month</p>
-                <ul className="space-y-2 flex-1">
+                <p className={s.planCredits}>{plan.monthlyCredits} credits / month</p>
+                <ul className={s.planFeatures}>
                   {plan.features.map((f) => (
-                    <li key={f} className="text-sm text-muted flex gap-2">
-                      <Check className="h-4 w-4 text-success shrink-0 mt-0.5" />
+                    <li key={f} className={s.planFeature}>
+                      <Check className={s.planFeatureIcon} />
                       {f}
                     </li>
                   ))}
                 </ul>
                 {isPaid && !isCurrent && (
                   <Button
-                    className="mt-6"
+                    className={s.subscribeBtn}
                     fullWidth
                     onClick={() => handleSubscribe(planKey as 'PRO' | 'BUSINESS')}
                     loading={subscribing === planKey}
@@ -116,7 +117,7 @@ export function Credits() {
                   </Button>
                 )}
                 {isCurrent && isPaid && (
-                  <p className="mt-6 text-xs text-muted text-center">You're on this plan</p>
+                  <p className={s.currentPlanNote}>You're on this plan</p>
                 )}
               </Card>
             );
@@ -126,23 +127,23 @@ export function Credits() {
 
       {/* Packs */}
       <section>
-        <h2 className="text-sm font-semibold text-muted uppercase tracking-wider mb-3">One-time credit packs</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <h2 className={s.sectionHeading}>One-time credit packs</h2>
+        <div className={s.packGrid}>
           {packs?.map((pack) => (
-            <Card key={pack.id} hover className="p-6 flex flex-col">
-              <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
-                <Gem className="h-5 w-5 text-primary" />
+            <Card key={pack.id} hover className={s.packCard}>
+              <div className={s.packIconWrap}>
+                <Gem className={s.packIcon} />
               </div>
-              <h3 className="font-semibold">{pack.name}</h3>
-              <p className="mt-1 text-3xl font-bold tracking-tight">
+              <h3 className={s.packName}>{pack.name}</h3>
+              <p className={s.packCredits}>
                 {pack.credits}
-                <span className="text-sm font-normal text-muted"> credits</span>
+                <span className={s.packCreditsUnit}> credits</span>
               </p>
-              <p className="text-muted text-sm mt-1 mb-5">${(pack.priceUsd / 100).toFixed(2)}</p>
+              <p className={s.packPrice}>${(pack.priceUsd / 100).toFixed(2)}</p>
               <Button
                 variant="secondary"
                 fullWidth
-                className="mt-auto"
+                className={s.buyBtn}
                 onClick={() => handlePurchase(pack.id)}
                 loading={buying === pack.id}
                 disabled={buying !== null}
@@ -156,22 +157,22 @@ export function Credits() {
 
       {/* History */}
       <section>
-        <h2 className="text-sm font-semibold text-muted uppercase tracking-wider mb-3">Transaction history</h2>
-        <Card className="overflow-hidden">
+        <h2 className={s.sectionHeading}>Transaction history</h2>
+        <Card className={s.historyCard}>
           {!history?.data.length ? (
-            <div className="p-10 text-center text-muted text-sm flex flex-col items-center gap-2">
-              <Sparkles className="h-5 w-5" />
+            <div className={s.historyEmpty}>
+              <Sparkles className={s.historyEmptyIcon} />
               No transactions yet
             </div>
           ) : (
-            <ul className="divide-y divide-border">
+            <ul className={s.historyList}>
               {history.data.map((tx) => (
-                <li key={tx.id} className="flex items-center justify-between px-4 py-3">
-                  <div className="min-w-0">
-                    <p className="text-sm truncate">{tx.description}</p>
-                    <p className="text-xs text-muted">{new Date(tx.createdAt).toLocaleDateString()}</p>
+                <li key={tx.id} className={s.historyRow}>
+                  <div className={s.historyInfo}>
+                    <p className={s.historyDesc}>{tx.description}</p>
+                    <p className={s.historyDate}>{new Date(tx.createdAt).toLocaleDateString()}</p>
                   </div>
-                  <span className={`text-sm font-semibold tabular-nums ${tx.amount >= 0 ? 'text-success' : 'text-muted'}`}>
+                  <span className={s.historyAmount(tx.amount >= 0)}>
                     {tx.amount >= 0 ? '+' : ''}
                     {tx.amount}
                   </span>
@@ -194,14 +195,10 @@ function Banner({
   tone: 'success' | 'danger' | 'muted';
   children: React.ReactNode;
 }) {
-  const tones = {
-    success: 'bg-success/10 border-success/20 text-success',
-    danger: 'bg-danger/10 border-danger/20 text-danger',
-    muted: 'bg-surface-2 border-border text-muted',
-  };
+  const s = useStyles(creditsStyles);
   return (
-    <div className={`flex items-center gap-2 p-3 rounded-xl border text-sm ${tones[tone]}`}>
-      <Icon className="h-4 w-4 shrink-0" />
+    <div className={s.banner(s.bannerTones[tone])}>
+      <Icon className={s.bannerIcon} />
       {children}
     </div>
   );

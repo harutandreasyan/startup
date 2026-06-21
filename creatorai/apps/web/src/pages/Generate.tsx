@@ -20,6 +20,8 @@ import { toast } from '../stores/toast.store';
 import { Button } from '../components/common/Button';
 import { Card } from '../components/common/Card';
 import { Select } from '../components/common/Select';
+import { useStyles } from '../lib/useStyles';
+import { generateStyles } from './Generate.styles';
 
 const TYPE_LABELS: Record<string, string> = {
   TEXT_TO_IMAGE: 'Text to Image',
@@ -45,6 +47,8 @@ export function Generate() {
   const user = useAuthStore((s) => s.user);
   const setUser = useAuthStore((s) => s.setUser);
   const queryClient = useQueryClient();
+
+  const s = useStyles(generateStyles);
 
   const { data: models, isLoading: modelsLoading } = useModels(type);
 
@@ -183,26 +187,23 @@ export function Generate() {
     }
   };
 
-  const inputClass =
-    'w-full px-3.5 py-2.5 rounded-xl bg-surface-2 border border-border text-sm text-foreground placeholder:text-muted/70 focus:outline-none focus:border-primary/60 focus:ring-4 focus:ring-primary/15 transition-all duration-200';
-
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
-      <div className="flex items-center justify-between">
+    <div className={s.page}>
+      <div className={s.header}>
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{TYPE_LABELS[type] || 'Generate'}</h1>
-          <p className="text-muted text-sm mt-0.5">Describe it, tune it, create it.</p>
+          <h1 className={s.title}>{TYPE_LABELS[type] || 'Generate'}</h1>
+          <p className={s.subtitle}>Describe it, tune it, create it.</p>
         </div>
-        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl glass text-sm font-medium">
-          <Gem className="h-4 w-4 text-primary" />
+        <span className={s.creditPill}>
+          <Gem className={s.creditIcon} />
           {user?.creditBalance ?? 0}
         </span>
       </div>
 
-      <Card glow className="p-5 sm:p-6 space-y-5">
+      <Card glow className={s.card}>
         {/* Model */}
         <div>
-          <label className="block text-xs font-medium text-muted uppercase tracking-wider mb-2">Model</label>
+          <label className={s.fieldLabel}>Model</label>
           <Select
             value={effectiveModelSlug}
             onChange={setSelectedModel}
@@ -214,13 +215,13 @@ export function Generate() {
 
         {needsPrompt && (
           <div>
-            <label className="block text-xs font-medium text-muted uppercase tracking-wider mb-2">Prompt</label>
+            <label className={s.fieldLabel}>Prompt</label>
             <textarea
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
               placeholder="A red fox in a snowy pine forest, cinematic lighting…"
               rows={4}
-              className={`${inputClass} resize-none`}
+              className={s.textarea}
             />
           </div>
         )}
@@ -228,46 +229,46 @@ export function Generate() {
         {needsPrompt && !showNegative && (
           <button
             onClick={() => setShowNegative(true)}
-            className="text-sm text-muted hover:text-foreground transition-colors"
+            className={s.negativeToggle}
           >
             + Add negative prompt
           </button>
         )}
         {needsPrompt && showNegative && (
           <div>
-            <label className="block text-xs font-medium text-muted uppercase tracking-wider mb-2">Negative prompt</label>
+            <label className={s.fieldLabel}>Negative prompt</label>
             <textarea
               value={negativePrompt}
               onChange={(e) => setNegativePrompt(e.target.value)}
               placeholder="blurry, low quality, distorted…"
               rows={2}
-              className={`${inputClass} resize-none`}
+              className={s.textarea}
             />
           </div>
         )}
 
         {needsPrompt && (
-          <div className="grid grid-cols-2 gap-3">
+          <div className={s.grid}>
             <div>
-              <label className="block text-xs font-medium text-muted uppercase tracking-wider mb-2">Size</label>
-              <Select value={size} onChange={setSize} options={SIZES.map((s) => ({ value: s.value, label: s.label }))} />
+              <label className={s.fieldLabel}>Size</label>
+              <Select value={size} onChange={setSize} options={SIZES.map((sz) => ({ value: sz.value, label: sz.label }))} />
             </div>
             <div>
-              <label className="block text-xs font-medium text-muted uppercase tracking-wider mb-2">Seed</label>
+              <label className={s.fieldLabel}>Seed</label>
               <input
                 type="number"
                 value={seed}
                 onChange={(e) => setSeed(e.target.value)}
                 placeholder="Random"
-                className={inputClass}
+                className={s.input}
               />
             </div>
           </div>
         )}
 
         {error && (
-          <div className="flex items-start gap-2 p-3 bg-danger/10 border border-danger/20 rounded-xl text-danger text-sm">
-            <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+          <div className={s.errorBox}>
+            <AlertCircle className={s.errorIcon} />
             {error}
           </div>
         )}
@@ -275,7 +276,7 @@ export function Generate() {
         <Button
           onClick={handleGenerate}
           loading={isBusy}
-          leftIcon={!isBusy && <Sparkles className="h-4 w-4" />}
+          leftIcon={!isBusy && <Sparkles className={s.generateIcon} />}
           size="lg"
           fullWidth
           disabled={isBusy || !currentModel || (needsPrompt && !prompt.trim())}
@@ -290,27 +291,27 @@ export function Generate() {
 
       {/* Result */}
       {generation?.status === 'COMPLETED' && generation.outputUrls[0] && (
-        <Card glow className="overflow-hidden animate-scale-in">
-          <img src={generation.outputUrls[0]} alt="Generated result" className="w-full" />
-          <div className="p-4 flex flex-wrap gap-2.5">
-            <Button onClick={handleDownload} leftIcon={<Download className="h-4 w-4" />}>
+        <Card glow className={s.resultCard}>
+          <img src={generation.outputUrls[0]} alt="Generated result" className={s.resultImage} />
+          <div className={s.resultActions}>
+            <Button onClick={handleDownload} leftIcon={<Download className={s.actionIcon} />}>
               Download
             </Button>
             <a href={generation.outputUrls[0]} target="_blank" rel="noopener noreferrer">
-              <Button variant="secondary" leftIcon={<ExternalLink className="h-4 w-4" />}>
+              <Button variant="secondary" leftIcon={<ExternalLink className={s.actionIcon} />}>
                 Open
               </Button>
             </a>
-            <Button variant="secondary" onClick={handleGenerate} disabled={isBusy} leftIcon={<RefreshCw className="h-4 w-4" />}>
+            <Button variant="secondary" onClick={handleGenerate} disabled={isBusy} leftIcon={<RefreshCw className={s.actionIcon} />}>
               Regenerate
             </Button>
             <Button
               variant="secondary"
               onClick={handleUpscale}
               disabled={isBusy}
-              leftIcon={<Maximize2 className="h-4 w-4" />}
+              leftIcon={<Maximize2 className={s.actionIcon} />}
               title="Premium model — requires Replicate billing"
-              className="ml-auto"
+              className={s.upscaleBtn}
             >
               Upscale
             </Button>
@@ -319,9 +320,9 @@ export function Generate() {
       )}
 
       {generation?.status === 'FAILED' && (
-        <Card className="p-4 border-danger/30 animate-fade-in-up">
-          <div className="flex items-start gap-2 text-danger text-sm">
-            <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+        <Card className={s.failedCard}>
+          <div className={s.failedRow}>
+            <AlertCircle className={s.failedIcon} />
             <span>
               Generation failed: {generation.errorMessage || 'Unknown error'}. Your credits were refunded.
             </span>

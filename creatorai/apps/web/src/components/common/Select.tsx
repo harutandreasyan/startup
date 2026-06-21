@@ -1,6 +1,8 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { ChevronDown, Check } from 'lucide-react';
+import { useStyles } from '../../lib/useStyles';
+import { makeSelectStyles } from './Select.styles';
 
 export interface SelectOption {
   value: string;
@@ -21,6 +23,7 @@ export function Select({ value, onChange, options, disabled, placeholder = 'Sele
   const [rect, setRect] = useState<{ top: number; left: number; width: number } | null>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const selected = options.find((o) => o.value === value);
+  const s = useStyles(() => makeSelectStyles(open, disabled, !!selected), [open, disabled, selected]);
 
   const place = () => {
     const el = triggerRef.current;
@@ -54,21 +57,19 @@ export function Select({ value, onChange, options, disabled, placeholder = 'Sele
         type="button"
         disabled={disabled}
         onClick={() => setOpen((o) => !o)}
-        className={`w-full flex items-center justify-between gap-2 px-3.5 py-2.5 rounded-xl bg-surface-2 border text-sm text-left transition-all duration-200 ${
-          open ? 'border-primary/60 ring-4 ring-primary/15' : 'border-border'
-        } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+        className={s.trigger}
       >
-        <span className={selected ? 'text-foreground' : 'text-muted'}>{selected ? selected.label : placeholder}</span>
-        <ChevronDown className={`h-4 w-4 text-muted shrink-0 transition-transform ${open ? 'rotate-180' : ''}`} />
+        <span className={s.triggerLabel}>{selected ? selected.label : placeholder}</span>
+        <ChevronDown className={s.chevron} />
       </button>
 
       {open &&
         rect &&
         createPortal(
           <>
-            <div className="fixed inset-0 z-[120]" onClick={() => setOpen(false)} />
+            <div className={s.backdrop} onClick={() => setOpen(false)} />
             <div
-              className="fixed z-[121] max-h-64 overflow-auto rounded-xl bg-surface-solid border border-border shadow-2xl backdrop-blur-xl p-1.5 animate-scale-in"
+              className={s.menu}
               style={{ top: rect.top, left: rect.left, width: rect.width }}
             >
               {options.map((o) => {
@@ -81,15 +82,13 @@ export function Select({ value, onChange, options, disabled, placeholder = 'Sele
                       onChange(o.value);
                       setOpen(false);
                     }}
-                    className={`w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-sm transition-colors ${
-                      active ? 'bg-primary/15 text-primary' : 'text-foreground hover:bg-foreground/[0.06]'
-                    }`}
+                    className={s.option(active)}
                   >
-                    <span className="flex flex-col items-start">
+                    <span className={s.optionText}>
                       <span>{o.label}</span>
-                      {o.hint && <span className="text-xs text-muted">{o.hint}</span>}
+                      {o.hint && <span className={s.optionHint}>{o.hint}</span>}
                     </span>
-                    {active && <Check className="h-4 w-4 shrink-0" />}
+                    {active && <Check className={s.checkIcon} />}
                   </button>
                 );
               })}

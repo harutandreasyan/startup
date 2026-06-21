@@ -1,4 +1,6 @@
 import type { CSSProperties, ReactNode } from 'react';
+import { useStyles } from '../../lib/useStyles';
+import { makeCube3DStyles } from './Cube3D.styles';
 
 interface Cube3DProps {
   size: number;
@@ -24,6 +26,7 @@ function transforms(half: number) {
 
 /** Reusable pure-CSS animated 3D cube. No dependencies. */
 export function Cube3D({ size, faces, spin = 20, perspective = 900, tint, mini = false, className = '' }: Cube3DProps) {
+  const s = useStyles(() => makeCube3DStyles(mini, className), [mini, className]);
   const half = size / 2;
   const ts = transforms(half);
   const style: CSSProperties = {
@@ -34,10 +37,10 @@ export function Cube3D({ size, faces, spin = 20, perspective = 900, tint, mini =
   };
 
   return (
-    <div className="scene-3d inline-flex" style={{ perspective }}>
-      <div className={`cube3d ${mini ? 'cube3d--mini' : ''} ${className}`} style={style}>
+    <div className={s.scene} style={{ perspective }}>
+      <div className={s.cube} style={style}>
         {ts.map((t, i) => (
-          <div key={i} className="cube3d__face" style={{ transform: t }}>
+          <div key={i} className={s.face} style={{ transform: t }}>
             {faces[i]}
           </div>
         ))}

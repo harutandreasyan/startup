@@ -13,8 +13,11 @@ import { Avatar } from '../components/common/Avatar';
 import { ConfirmModal } from '../components/common/ConfirmModal';
 import { DeleteAccountModal } from '../components/common/DeleteAccountModal';
 import { AvatarCropper } from '../components/common/AvatarCropper';
+import { useStyles } from '../lib/useStyles';
+import { settingsStyles } from './Settings.styles';
 
 export function Settings() {
+  const s = useStyles(settingsStyles);
   const { user, signOut } = useAuth();
   const setUser = useAuthStore((s) => s.setUser);
   const queryClient = useQueryClient();
@@ -124,34 +127,30 @@ export function Settings() {
     }
   };
 
-  const inputClass =
-    'w-full max-w-sm px-3.5 py-2.5 rounded-xl bg-surface-2 border border-border text-sm text-foreground placeholder:text-muted/70 focus:outline-none focus:border-primary/60 focus:ring-4 focus:ring-primary/15 transition-all duration-200';
-  const fieldLabel = 'block text-xs font-medium text-muted uppercase tracking-wider mb-1.5';
-
   return (
-    <div className="max-w-2xl space-y-6">
-      <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Settings</h1>
+    <div className={s.page}>
+      <h1 className={s.title}>Settings</h1>
 
       {/* Profile */}
-      <Card glow className="p-6">
-        <h2 className="font-semibold mb-5">Profile</h2>
+      <Card glow className={s.card}>
+        <h2 className={s.cardHeading}>Profile</h2>
 
         {/* Avatar */}
-        <div className="flex items-center gap-4 mb-6">
-          <div className="relative">
+        <div className={s.avatarRow}>
+          <div className={s.avatarWrap}>
             <Avatar name={user?.name} username={user?.username} email={user?.email} src={user?.avatarUrl} size={72} />
             <button
               onClick={() => fileRef.current?.click()}
               aria-label="Change photo"
-              className="absolute -bottom-1 -right-1 h-8 w-8 rounded-full bg-primary text-white flex items-center justify-center shadow-lg shadow-primary/30 hover:bg-primary-hover transition-colors ring-2 ring-[var(--background)]"
+              className={s.avatarBtn}
             >
-              <Camera className="h-4 w-4" />
+              <Camera className={s.cameraIcon} />
             </button>
           </div>
           <div>
-            <p className="text-sm font-medium">Profile photo</p>
-            <p className="text-xs text-muted mb-2">JPG or PNG, square looks best.</p>
-            <div className="flex gap-2">
+            <p className={s.avatarTitle}>Profile photo</p>
+            <p className={s.avatarHint}>JPG or PNG, square looks best.</p>
+            <div className={s.avatarBtnRow}>
               <Button size="sm" variant="secondary" onClick={() => fileRef.current?.click()}>
                 Upload
               </Button>
@@ -161,26 +160,26 @@ export function Settings() {
                 </Button>
               )}
             </div>
-            <input ref={fileRef} type="file" accept="image/*" onChange={handleFilePick} className="hidden" />
+            <input ref={fileRef} type="file" accept="image/*" onChange={handleFilePick} className={s.hiddenInput} />
           </div>
         </div>
 
-        <div className="space-y-5">
+        <div className={s.fields}>
           {user?.username && (
             <div>
-              <label className={fieldLabel}>Username</label>
-              <p className="text-sm">@{user.username}</p>
+              <label className={s.fieldLabel}>Username</label>
+              <p className={s.usernameValue}>@{user.username}</p>
             </div>
           )}
           <div>
-            <label className={fieldLabel}>Display name</label>
-            <div className="flex flex-wrap items-center gap-2">
+            <label className={s.fieldLabel}>Display name</label>
+            <div className={s.fieldRow}>
               <input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Your name"
-                className={inputClass}
+                className={s.inputClass}
               />
               <Button onClick={handleSave} loading={saving} disabled={!dirty || saving} size="sm">
                 Save
@@ -188,15 +187,15 @@ export function Settings() {
             </div>
           </div>
           <div>
-            <label className={fieldLabel}>Email</label>
-            <div className="flex flex-wrap items-center gap-2">
+            <label className={s.fieldLabel}>Email</label>
+            <div className={s.fieldRow}>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 autoCapitalize="none"
                 placeholder="you@example.com"
-                className={inputClass}
+                className={s.inputClass}
               />
               <Button onClick={handleChangeEmail} loading={savingEmail} disabled={!emailDirty || savingEmail} size="sm">
                 Update
@@ -207,49 +206,49 @@ export function Settings() {
       </Card>
 
       {/* Subscription */}
-      <Card glow className="p-6">
-        <h2 className="font-semibold mb-5 flex items-center gap-2">
-          <Crown className="h-4 w-4 text-primary" /> Subscription
+      <Card glow className={s.card}>
+        <h2 className={s.subHeading}>
+          <Crown className={s.crownIcon} /> Subscription
         </h2>
         {subscription ? (
-          <div className="space-y-3">
-            <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm">
-              <span><span className="text-muted">Plan: </span><span className="font-medium">{subscription.plan}</span></span>
-              <span><span className="text-muted">Renews: </span>{new Date(subscription.currentPeriodEnd).toLocaleDateString()}</span>
+          <div className={s.subContent}>
+            <div className={s.subRow}>
+              <span><span className={s.subMuted}>Plan: </span><span className={s.subPlan}>{subscription.plan}</span></span>
+              <span><span className={s.subMuted}>Renews: </span>{new Date(subscription.currentPeriodEnd).toLocaleDateString()}</span>
             </div>
             <Button variant="secondary" onClick={() => setShowCancelSub(true)}>
               Cancel subscription
             </Button>
           </div>
         ) : (
-          <p className="text-sm text-muted">
+          <p className={s.freeText}>
             You're on the Free plan.{' '}
-            <Link to="/credits" className="text-primary hover:text-primary-hover font-medium inline-flex items-center gap-0.5">
-              Upgrade <ArrowUpRight className="h-3.5 w-3.5" />
+            <Link to="/credits" className={s.upgradeLink}>
+              Upgrade <ArrowUpRight className={s.upgradeIcon} />
             </Link>
           </p>
         )}
       </Card>
 
       {/* Account */}
-      <Card glow className="p-6">
-        <h2 className="font-semibold mb-4">Account</h2>
-        <Button variant="secondary" onClick={() => setShowSignOut(true)} leftIcon={<LogOut className="h-4 w-4" />}>
+      <Card glow className={s.card}>
+        <h2 className={s.accountHeading}>Account</h2>
+        <Button variant="secondary" onClick={() => setShowSignOut(true)} leftIcon={<LogOut className={s.signOutIcon} />}>
           Sign out
         </Button>
 
-        <div className="h-px bg-border my-5" />
+        <div className={s.divider} />
 
-        <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className={s.deleteRow}>
           <div>
-            <p className="text-sm font-medium">Delete account</p>
-            <p className="text-xs text-muted">Permanently erase your account and all creations.</p>
+            <p className={s.deleteTitle}>Delete account</p>
+            <p className={s.deleteHint}>Permanently erase your account and all creations.</p>
           </div>
           <button
             onClick={() => setShowDelete(true)}
-            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-medium text-danger hover:bg-danger/10 transition-colors"
+            className={s.deleteBtn}
           >
-            <Trash2 className="h-4 w-4" /> Delete
+            <Trash2 className={s.trashIcon} /> Delete
           </button>
         </div>
       </Card>
