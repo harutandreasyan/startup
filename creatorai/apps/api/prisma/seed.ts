@@ -1,21 +1,21 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Prisma } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
 async function main() {
-  // Credit packs
+  // Credit packs — CreditPack has no unique key, so clear and recreate to stay
+  // idempotent (safe: Payment.productId is a plain string, not an FK).
+  await prisma.creditPack.deleteMany();
   await prisma.creditPack.createMany({
     data: [
       { name: 'Starter', credits: 100, priceUsd: 499, sortOrder: 0 },
       { name: 'Pro', credits: 400, priceUsd: 1499, sortOrder: 1 },
       { name: 'Ultra', credits: 1200, priceUsd: 3999, sortOrder: 2 },
     ],
-    skipDuplicates: true,
   });
 
-  // AI models
-  await prisma.aiModel.createMany({
-    data: [
+  // AI models — upsert by unique slug so re-running updates existing rows.
+  const aiModels: Prisma.AiModelCreateInput[] = [
       // --- FREE models (Pollinations.ai — no API key, no billing) ---
       {
         slug: 'flux-schnell',
@@ -73,9 +73,15 @@ async function main() {
         tags: ['editing', 'upscale'],
         sortOrder: 11,
       },
-    ],
-    skipDuplicates: true,
-  });
+    ];
+
+  for (const model of aiModels) {
+    await prisma.aiModel.upsert({
+      where: { slug: model.slug },
+      create: model,
+      update: model,
+    });
+  }
 
   console.log('Seed complete');
 }

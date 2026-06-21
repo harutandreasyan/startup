@@ -1,5 +1,5 @@
 import { api } from '../client';
-import type { UserProfile } from '@creatorai/shared';
+import type { UserProfile, UserStats } from '@creatorai/shared';
 
 export async function getMe(): Promise<UserProfile> {
   const { data } = await api.get('/users/me');
@@ -8,6 +8,11 @@ export async function getMe(): Promise<UserProfile> {
 
 export async function updateProfile(input: { name?: string }): Promise<UserProfile> {
   const { data } = await api.patch('/users/me', input);
+  return data;
+}
+
+export async function getStats(): Promise<UserStats> {
+  const { data } = await api.get('/users/me/stats');
   return data;
 }
 

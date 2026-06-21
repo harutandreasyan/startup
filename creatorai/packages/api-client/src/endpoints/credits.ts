@@ -23,3 +23,8 @@ export async function purchaseCredits(packId: string): Promise<{ url: string }> 
   const { data } = await api.post('/credits/purchase', { packId });
   return data;
 }
+
+export async function subscribe(plan: 'PRO' | 'BUSINESS'): Promise<{ url: string }> {
+  const { data } = await api.post('/payments/subscribe', { plan });
+  return data;
+}

@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { listGenerations } from '@creatorai/api-client';
+import { listGenerations, getStats } from '@creatorai/api-client';
 import { useAuthStore } from '../stores/auth.store';
 
 export function Dashboard() {
@@ -9,7 +9,15 @@ export function Dashboard() {
     queryKey: ['generations'],
     queryFn: () => listGenerations({ limit: 8 }),
   });
+  const { data: stats } = useQuery({ queryKey: ['stats'], queryFn: getStats });
   const recent = (data?.data ?? []).filter((g) => g.status === 'COMPLETED' && g.thumbnailUrl);
+
+  const statCards = [
+    { label: 'Credits', value: user?.creditBalance ?? 0, icon: '💎' },
+    { label: 'Creations', value: stats?.completedGenerations ?? 0, icon: '🖼️' },
+    { label: 'Credits used', value: stats?.creditsSpent ?? 0, icon: '⚡' },
+    { label: 'Total runs', value: stats?.totalGenerations ?? 0, icon: '📊' },
+  ];
 
   return (
     <div className="text-white">
@@ -17,6 +25,16 @@ export function Dashboard() {
         Welcome back{user?.name ? `, ${user.name}` : ''}
       </h1>
       <p className="text-gray-400 mb-8">What would you like to create today?</p>
+
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
+        {statCards.map((s) => (
+          <div key={s.label} className="p-5 bg-gray-900 rounded-xl border border-gray-800">
+            <div className="text-2xl mb-2">{s.icon}</div>
+            <div className="text-2xl font-bold">{s.value}</div>
+            <div className="text-xs text-gray-400">{s.label}</div>
+          </div>
+        ))}
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-12">
         {[

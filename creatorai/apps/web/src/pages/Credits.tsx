@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { getCreditPacks, purchaseCredits, getCreditHistory } from '@creatorai/api-client';
+import { getCreditPacks, purchaseCredits, getCreditHistory, subscribe } from '@creatorai/api-client';
+import { PLANS } from '@creatorai/shared';
 import { useAuthStore } from '../stores/auth.store';
 import { apiErrorMessage } from '../lib/apiError';
 
@@ -10,7 +11,9 @@ export function Credits() {
   const [searchParams] = useSearchParams();
   const status = searchParams.get('status');
   const [buying, setBuying] = useState<string | null>(null);
+  const [subscribing, setSubscribing] = useState<string | null>(null);
   const [error, setError] = useState('');
+  const currentPlan = user?.plan ?? 'FREE';
 
   const { data: packs } = useQuery({ queryKey: ['credit-packs'], queryFn: getCreditPacks });
   const { data: history } = useQuery({
@@ -30,6 +33,18 @@ export function Credits() {
     }
   };
 
+  const handleSubscribe = async (plan: 'PRO' | 'BUSINESS') => {
+    setError('');
+    setSubscribing(plan);
+    try {
+      const { url } = await subscribe(plan);
+      window.location.assign(url);
+    } catch (err) {
+      setError(apiErrorMessage(err, 'Could not start subscription. Is Stripe configured?'));
+      setSubscribing(null);
+    }
+  };
+
   return (
     <div className="text-white">
       <h1 className="text-2xl font-bold mb-2">Credits</h1>
@@ -42,6 +57,11 @@ export function Credits() {
           Payment successful! Your credits will appear shortly.
         </div>
       )}
+      {status === 'subscribed' && (
+        <div className="mb-6 p-3 bg-green-500/10 border border-green-500/20 rounded-lg text-green-400 text-sm">
+          Subscription active! Your monthly credits will appear shortly.
+        </div>
+      )}
       {status === 'cancelled' && (
         <div className="mb-6 p-3 bg-gray-500/10 border border-gray-500/20 rounded-lg text-gray-400 text-sm">
           Checkout cancelled — no charge was made.
@@ -52,6 +72,55 @@ export function Credits() {
           {error}
         </div>
       )}
+
+      <h2 className="text-lg font-semibold mb-4">Subscription Plans</h2>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-12">
+        {(['FREE', 'PRO', 'BUSINESS'] as const).map((planKey) => {
+          const plan = PLANS[planKey];
+          const isCurrent = currentPlan === planKey;
+          const isPaid = planKey !== 'FREE';
+          return (
+            <div
+              key={planKey}
+              className={`p-6 bg-gray-900 rounded-xl border transition-colors ${
+                isCurrent ? 'border-indigo-500' : 'border-gray-800'
+              }`}
+            >
+              <div className="flex items-center justify-between mb-1">
+                <h3 className="font-semibold text-lg">{plan.name}</h3>
+                {isCurrent && (
+                  <span className="text-xs px-2 py-0.5 bg-indigo-600 rounded-full">Current</span>
+                )}
+              </div>
+              <p className="text-2xl font-bold mb-1">
+                ${(plan.priceUsd / 100).toFixed(2)}
+                <span className="text-sm font-normal text-gray-400">/mo</span>
+              </p>
+              <p className="text-sm text-indigo-400 mb-4">{plan.monthlyCredits} credits / month</p>
+              <ul className="space-y-1 mb-5">
+                {plan.features.map((f) => (
+                  <li key={f} className="text-xs text-gray-400 flex gap-2">
+                    <span className="text-green-400">✓</span>
+                    {f}
+                  </li>
+                ))}
+              </ul>
+              {isPaid && !isCurrent && (
+                <button
+                  onClick={() => handleSubscribe(planKey as 'PRO' | 'BUSINESS')}
+                  disabled={subscribing !== null}
+                  className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 rounded-lg text-sm font-medium transition-colors"
+                >
+                  {subscribing === planKey ? 'Redirecting…' : `Subscribe to ${plan.name}`}
+                </button>
+              )}
+              {isCurrent && isPaid && (
+                <p className="text-xs text-gray-500 text-center">You're on this plan</p>
+              )}
+            </div>
+          );
+        })}
+      </div>
 
       <h2 className="text-lg font-semibold mb-4">Buy Credits</h2>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-12">

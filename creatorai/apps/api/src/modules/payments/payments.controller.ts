@@ -14,6 +14,12 @@ export class PaymentsController {
     return this.paymentsService.createCheckoutSession(user.id, body.packId, user.email);
   }
 
+  @Post('payments/subscribe')
+  @UseGuards(AuthGuard)
+  async subscribe(@CurrentUser() user: any, @Body() body: { plan: 'PRO' | 'BUSINESS' }) {
+    return this.paymentsService.createSubscriptionCheckout(user.id, body.plan, user.email);
+  }
+
   @Post('payments/stripe/webhook')
   async stripeWebhook(
     @Req() req: Request & { rawBody?: Buffer },

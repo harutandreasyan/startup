@@ -25,3 +25,10 @@ export interface UserProfile {
 }
 
 export type SubscriptionPlan = 'FREE' | 'PRO' | 'BUSINESS';
+
+export interface UserStats {
+  totalGenerations: number;
+  completedGenerations: number;
+  creditsSpent: number;
+  byType: { type: string; count: number }[];
+}
