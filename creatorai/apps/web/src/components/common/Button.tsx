@@ -12,7 +12,7 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const base =
-  'relative inline-flex items-center justify-center gap-2 font-medium rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.97] select-none';
+  'relative inline-flex items-center justify-center font-medium rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.97] select-none';
 
 const variants: Record<Variant, string> = {
   primary: 'btn-glow text-white',
@@ -45,12 +45,15 @@ export function Button({
       disabled={disabled || loading}
       {...props}
     >
-      {loading ? (
-        <span className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-      ) : (
-        leftIcon
-      )}
-      <span className="relative z-10">{children}</span>
+      {/* Single centered flex group: gap only applies between real, visible children */}
+      <span className="relative z-10 inline-flex items-center justify-center gap-2">
+        {loading ? (
+          <span className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+        ) : (
+          leftIcon
+        )}
+        {children}
+      </span>
     </button>
   );
 }

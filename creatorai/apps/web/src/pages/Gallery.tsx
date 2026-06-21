@@ -52,7 +52,8 @@ export function Gallery() {
     queryKey: ['generations'],
     queryFn: () => listGenerations({ limit: 50 }),
   });
-  const generations = data?.data ?? [];
+  // Failed generations are never shown (the user is notified via toast instead).
+  const generations = (data?.data ?? []).filter((g) => g.status !== 'FAILED');
 
   useEffect(() => {
     if (!menu) return;
@@ -142,25 +143,32 @@ export function Gallery() {
                   />
                 ) : (
                   <div className="w-full h-full flex flex-col items-center justify-center gap-1 text-xs text-muted">
-                    {g.status === 'FAILED' ? (
-                      <span className="text-danger">Failed</span>
-                    ) : (
-                      <>
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        Processing
-                      </>
-                    )}
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Processing
                   </div>
                 )}
 
                 {ready && (
-                  <button
-                    onClick={(e) => openMenu(e, g)}
-                    aria-label="More options"
-                    className="absolute top-2 right-2 h-8 w-8 inline-flex items-center justify-center rounded-lg bg-black/45 backdrop-blur text-white opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity hover:bg-black/65"
-                  >
-                    <MoreVertical className="h-4 w-4" />
-                  </button>
+                  <>
+                    <button
+                      onClick={(e) => openMenu(e, g)}
+                      aria-label="More options"
+                      className="absolute top-2 right-2 h-8 w-8 inline-flex items-center justify-center rounded-lg bg-black/45 backdrop-blur text-white opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity hover:bg-black/65"
+                    >
+                      <MoreVertical className="h-4 w-4" />
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        downloadImage(g.outputUrls[0], g.id);
+                      }}
+                      aria-label="Download"
+                      title="Download"
+                      className="absolute bottom-2 right-2 h-8 w-8 inline-flex items-center justify-center rounded-lg bg-black/45 backdrop-blur text-white opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity hover:bg-black/65"
+                    >
+                      <Download className="h-4 w-4" />
+                    </button>
+                  </>
                 )}
               </div>
             );
@@ -185,7 +193,7 @@ export function Gallery() {
                     setMenu(null);
                   }}
                   className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors ${
-                    item.danger ? 'text-danger hover:bg-danger/10' : 'text-foreground hover:bg-surface-2'
+                    item.danger ? 'text-danger hover:bg-danger/10' : 'text-foreground hover:bg-foreground/[0.06]'
                   }`}
                 >
                   <item.icon className="h-4 w-4" />
@@ -223,18 +231,20 @@ export function Gallery() {
                 className="max-h-full max-w-full object-contain rounded-2xl animate-scale-in"
               />
             </div>
-            <div className="shrink-0 flex flex-wrap items-center justify-center gap-2.5 pt-4" onClick={(e) => e.stopPropagation()}>
+            <div className="shrink-0 flex items-center justify-center gap-2 sm:gap-2.5 pt-4" onClick={(e) => e.stopPropagation()}>
               <Button onClick={() => downloadImage(preview.outputUrls[0], preview.id)} leftIcon={<Download className="h-4 w-4" />}>
-                Download
+                <span className="hidden sm:inline">Download</span>
               </Button>
               <a href={preview.outputUrls[0]} target="_blank" rel="noopener noreferrer">
-                <Button variant="secondary" leftIcon={<ExternalLink className="h-4 w-4" />}>Open</Button>
+                <Button variant="secondary" leftIcon={<ExternalLink className="h-4 w-4" />}>
+                  <span className="hidden sm:inline">Open</span>
+                </Button>
               </a>
               <Button variant="secondary" onClick={() => setDetails(preview)} leftIcon={<Info className="h-4 w-4" />}>
-                Details
+                <span className="hidden sm:inline">Details</span>
               </Button>
               <Button variant="danger" onClick={() => setConfirmDeleteGen(preview)} leftIcon={<Trash2 className="h-4 w-4" />}>
-                Delete
+                <span className="hidden sm:inline">Delete</span>
               </Button>
             </div>
           </div>,
@@ -246,31 +256,16 @@ export function Gallery() {
         {details && (
           <div className="px-5 pb-5 pt-2 space-y-4">
             {details.prompt && (
-              <div>
-                <p className="text-xs text-muted uppercase tracking-wider mb-1">Prompt</p>
-                <p className="text-sm">{details.prompt}</p>
-              </div>
+              <Detail label="Prompt" value={details.prompt} />
             )}
             {details.negativePrompt && (
-              <div>
-                <p className="text-xs text-muted uppercase tracking-wider mb-1">Negative prompt</p>
-                <p className="text-sm">{details.negativePrompt}</p>
-              </div>
+              <Detail label="Negative prompt" value={details.negativePrompt} />
             )}
-            <div className="grid grid-cols-2 gap-3 text-sm">
-              <div>
-                <p className="text-xs text-muted uppercase tracking-wider mb-1">Model</p>
-                <p>{details.model}</p>
-              </div>
-              <div>
-                <p className="text-xs text-muted uppercase tracking-wider mb-1">Cost</p>
-                <p>{details.creditsCost} credits</p>
-              </div>
-              <div className="col-span-2">
-                <p className="text-xs text-muted uppercase tracking-wider mb-1">Created</p>
-                <p>{new Date(details.createdAt).toLocaleString()}</p>
-              </div>
-            </div>
+            <div className="h-px bg-border" />
+            <Detail label="Type" value={details.type.replaceAll('_', ' ').toLowerCase()} />
+            <Detail label="Model" value={details.model} />
+            <Detail label="Cost" value={`${details.creditsCost} credits`} />
+            <Detail label="Created" value={new Date(details.createdAt).toLocaleString()} />
           </div>
         )}
       </Modal>
@@ -285,6 +280,15 @@ export function Gallery() {
         onConfirm={handleDelete}
         onCancel={() => setConfirmDeleteGen(null)}
       />
+    </div>
+  );
+}
+
+function Detail({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <p className="text-xs text-muted uppercase tracking-wider mb-1">{label}</p>
+      <p className="text-sm break-words">{value}</p>
     </div>
   );
 }

@@ -8,6 +8,7 @@ import { Generate } from './pages/Generate';
 import { Gallery } from './pages/Gallery';
 import { Credits } from './pages/Credits';
 import { Settings } from './pages/Settings';
+import { NotFound } from './pages/NotFound';
 import { useAuth } from './hooks/useAuth';
 import { Toaster } from './components/common/Toaster';
 
@@ -28,6 +29,8 @@ export function App() {
           <Route path="/credits" element={<Credits />} />
           <Route path="/settings" element={<Settings />} />
         </Route>
+
+        <Route path="*" element={<NotFound />} />
       </Routes>
       <Toaster />
     </>

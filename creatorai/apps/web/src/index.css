@@ -249,6 +249,19 @@ body {
 
 *:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; border-radius: 6px; }
 
+/* Clickable elements get a pointer cursor */
+button:not(:disabled), a, [role="button"], label[for], select:not(:disabled), summary { cursor: pointer; }
+button:disabled, [aria-disabled="true"] { cursor: not-allowed; }
+
+/* Text not selectable anywhere except real inputs */
+body { user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+input, textarea, [contenteditable="true"] { user-select: text; -webkit-user-select: text; -webkit-touch-callout: default; }
+/* Prevent native drag-ghost / long-press drag on links, buttons, images and icons */
+a, button, [role="button"], img, svg { -webkit-user-drag: none; user-select: none; }
+
+/* Placeholder disappears as soon as the field is focused */
+input:focus::placeholder, textarea:focus::placeholder { color: transparent; }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
 }

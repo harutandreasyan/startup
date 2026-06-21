@@ -1,17 +1,18 @@
 import { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { LogOut, Crown, ArrowUpRight, Camera, Loader2, Trash2 } from 'lucide-react';
+import { LogOut, Crown, ArrowUpRight, Camera, Trash2 } from 'lucide-react';
 import { updateProfile, deleteAccount, getSubscription, cancelSubscription, getMe, changeEmail } from '@creatorai/api-client';
 import { useAuth } from '../hooks/useAuth';
 import { useAuthStore } from '../stores/auth.store';
 import { apiErrorMessage } from '../lib/apiError';
 import { toast } from '../stores/toast.store';
-import { fileToAvatarDataUrl } from '../lib/image';
 import { Card } from '../components/common/Card';
 import { Button } from '../components/common/Button';
 import { Avatar } from '../components/common/Avatar';
 import { ConfirmModal } from '../components/common/ConfirmModal';
+import { DeleteAccountModal } from '../components/common/DeleteAccountModal';
+import { AvatarCropper } from '../components/common/AvatarCropper';
 
 export function Settings() {
   const { user, signOut } = useAuth();
@@ -23,13 +24,16 @@ export function Settings() {
   const [email, setEmail] = useState(user?.email ?? '');
   const [saving, setSaving] = useState(false);
   const [savingEmail, setSavingEmail] = useState(false);
-  const [uploading, setUploading] = useState(false);
+  const [applyingAvatar, setApplyingAvatar] = useState(false);
+  const [removingAvatar, setRemovingAvatar] = useState(false);
   const [cancelling, setCancelling] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [cropFile, setCropFile] = useState<File | null>(null);
 
   // modals
   const [showSignOut, setShowSignOut] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
+  const [showRemoveAvatar, setShowRemoveAvatar] = useState(false);
   const [showCancelSub, setShowCancelSub] = useState(false);
 
   const { data: subscription } = useQuery({ queryKey: ['subscription'], queryFn: getSubscription });
@@ -62,31 +66,35 @@ export function Settings() {
     }
   };
 
-  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFilePick = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     e.target.value = '';
-    if (!file) return;
-    setUploading(true);
+    if (file) setCropFile(file); // open cropper for preview/adjust
+  };
+
+  const handleApplyAvatar = async (dataUrl: string) => {
+    setApplyingAvatar(true);
     try {
-      const dataUrl = await fileToAvatarDataUrl(file);
       setUser(await updateProfile({ avatarUrl: dataUrl }));
+      setCropFile(null);
       toast.success('Profile photo updated');
     } catch (err) {
       toast.error(apiErrorMessage(err, 'Could not update photo.'));
     } finally {
-      setUploading(false);
+      setApplyingAvatar(false);
     }
   };
 
   const handleRemoveAvatar = async () => {
-    setUploading(true);
+    setRemovingAvatar(true);
     try {
       setUser(await updateProfile({ avatarUrl: '' }));
+      setShowRemoveAvatar(false);
       toast.success('Profile photo removed');
     } catch (err) {
       toast.error(apiErrorMessage(err, 'Could not remove photo.'));
     } finally {
-      setUploading(false);
+      setRemovingAvatar(false);
     }
   };
 
@@ -134,27 +142,26 @@ export function Settings() {
             <Avatar name={user?.name} username={user?.username} email={user?.email} src={user?.avatarUrl} size={72} />
             <button
               onClick={() => fileRef.current?.click()}
-              disabled={uploading}
               aria-label="Change photo"
               className="absolute -bottom-1 -right-1 h-8 w-8 rounded-full bg-primary text-white flex items-center justify-center shadow-lg shadow-primary/30 hover:bg-primary-hover transition-colors ring-2 ring-[var(--background)]"
             >
-              {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
+              <Camera className="h-4 w-4" />
             </button>
           </div>
           <div>
             <p className="text-sm font-medium">Profile photo</p>
             <p className="text-xs text-muted mb-2">JPG or PNG, square looks best.</p>
             <div className="flex gap-2">
-              <Button size="sm" variant="secondary" onClick={() => fileRef.current?.click()} disabled={uploading}>
+              <Button size="sm" variant="secondary" onClick={() => fileRef.current?.click()}>
                 Upload
               </Button>
               {user?.avatarUrl && (
-                <Button size="sm" variant="ghost" onClick={handleRemoveAvatar} disabled={uploading}>
+                <Button size="sm" variant="ghost" onClick={() => setShowRemoveAvatar(true)}>
                   Remove
                 </Button>
               )}
             </div>
-            <input ref={fileRef} type="file" accept="image/*" onChange={handleAvatarChange} className="hidden" />
+            <input ref={fileRef} type="file" accept="image/*" onChange={handleFilePick} className="hidden" />
           </div>
         </div>
 
@@ -226,25 +233,46 @@ export function Settings() {
 
       {/* Account */}
       <Card glow className="p-6">
-        <h2 className="font-semibold mb-1">Account</h2>
-        <p className="text-sm text-muted mb-4">Sign out of CreatorAI on this device.</p>
+        <h2 className="font-semibold mb-4">Account</h2>
         <Button variant="secondary" onClick={() => setShowSignOut(true)} leftIcon={<LogOut className="h-4 w-4" />}>
           Sign out
         </Button>
-      </Card>
 
-      {/* Danger zone */}
-      <Card className="p-6 border-danger/30">
-        <h2 className="font-semibold mb-1 text-danger">Danger zone</h2>
-        <p className="text-sm text-muted mb-4">
-          Permanently delete your account and all data. This cannot be undone.
-        </p>
-        <Button variant="danger" onClick={() => setShowDelete(true)} leftIcon={<Trash2 className="h-4 w-4" />}>
-          Delete account
-        </Button>
+        <div className="h-px bg-border my-5" />
+
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="text-sm font-medium">Delete account</p>
+            <p className="text-xs text-muted">Permanently erase your account and all creations.</p>
+          </div>
+          <button
+            onClick={() => setShowDelete(true)}
+            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-medium text-danger hover:bg-danger/10 transition-colors"
+          >
+            <Trash2 className="h-4 w-4" /> Delete
+          </button>
+        </div>
       </Card>
 
       {/* Modals */}
+      {cropFile && (
+        <AvatarCropper
+          file={cropFile}
+          saving={applyingAvatar}
+          onApply={handleApplyAvatar}
+          onCancel={() => setCropFile(null)}
+        />
+      )}
+      <ConfirmModal
+        open={showRemoveAvatar}
+        title="Remove profile photo?"
+        description="Your avatar will go back to the default initial."
+        confirmLabel="Remove"
+        variant="danger"
+        loading={removingAvatar}
+        onConfirm={handleRemoveAvatar}
+        onCancel={() => setShowRemoveAvatar(false)}
+      />
       <ConfirmModal
         open={showSignOut}
         title="Sign out?"
@@ -264,12 +292,8 @@ export function Settings() {
         onConfirm={handleCancelSubscription}
         onCancel={() => setShowCancelSub(false)}
       />
-      <ConfirmModal
+      <DeleteAccountModal
         open={showDelete}
-        title="Delete account?"
-        description="This permanently deletes your account, credits, and all generated images. This action cannot be undone."
-        confirmLabel="Delete everything"
-        variant="danger"
         loading={deleting}
         onConfirm={handleDelete}
         onCancel={() => setShowDelete(false)}

@@ -8,7 +8,6 @@ import {
   RefreshCw,
   Maximize2,
   Gem,
-  ChevronDown,
   AlertCircle,
 } from 'lucide-react';
 import { createGeneration, getGeneration, getMe } from '@creatorai/api-client';
@@ -20,6 +19,7 @@ import { apiErrorMessage, apiErrorStatus } from '../lib/apiError';
 import { toast } from '../stores/toast.store';
 import { Button } from '../components/common/Button';
 import { Card } from '../components/common/Card';
+import { Select } from '../components/common/Select';
 
 const TYPE_LABELS: Record<string, string> = {
   TEXT_TO_IMAGE: 'Text to Image',
@@ -203,23 +203,13 @@ export function Generate() {
         {/* Model */}
         <div>
           <label className="block text-xs font-medium text-muted uppercase tracking-wider mb-2">Model</label>
-          <div className="relative">
-            <select
-              value={effectiveModelSlug}
-              onChange={(e) => setSelectedModel(e.target.value)}
-              disabled={modelsLoading || !models?.length}
-              className={`${inputClass} appearance-none pr-10 cursor-pointer`}
-            >
-              {modelsLoading && <option>Loading models…</option>}
-              {!modelsLoading && !models?.length && <option>No models available</option>}
-              {models?.map((m) => (
-                <option key={m.slug} value={m.slug}>
-                  {m.name} — {m.creditCost} credits
-                </option>
-              ))}
-            </select>
-            <ChevronDown className="h-4 w-4 text-muted absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-          </div>
+          <Select
+            value={effectiveModelSlug}
+            onChange={setSelectedModel}
+            disabled={modelsLoading || !models?.length}
+            placeholder={modelsLoading ? 'Loading models…' : 'No models available'}
+            options={(models ?? []).map((m) => ({ value: m.slug, label: m.name, hint: `${m.creditCost} credits` }))}
+          />
         </div>
 
         {needsPrompt && (
@@ -260,18 +250,7 @@ export function Generate() {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-medium text-muted uppercase tracking-wider mb-2">Size</label>
-              <div className="relative">
-                <select
-                  value={size}
-                  onChange={(e) => setSize(e.target.value)}
-                  className={`${inputClass} appearance-none pr-10 cursor-pointer`}
-                >
-                  {SIZES.map((s) => (
-                    <option key={s.value} value={s.value}>{s.label}</option>
-                  ))}
-                </select>
-                <ChevronDown className="h-4 w-4 text-muted absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-              </div>
+              <Select value={size} onChange={setSize} options={SIZES.map((s) => ({ value: s.value, label: s.label }))} />
             </div>
             <div>
               <label className="block text-xs font-medium text-muted uppercase tracking-wider mb-2">Seed</label>
