@@ -87,13 +87,13 @@ export function Sidebar() {
         <div className="flex items-center h-9">
           <span
             onClick={stop}
-            className="shrink-0 transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]"
+            className="shrink-0 flex transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]"
             style={{ transform: collapsed ? 'translateX(8px)' : 'none' }}
           >
             <ThemeToggle />
           </span>
           <span
-            className="ml-2 text-xs font-medium text-muted whitespace-nowrap transition-[opacity,transform] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]"
+            className="ml-2 text-xs font-medium text-muted leading-none whitespace-nowrap transition-[opacity,transform] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]"
             style={{ opacity: collapsed ? 0 : 1, transform: collapsed ? 'translateX(-6px)' : 'none' }}
           >
             Appearance
@@ -102,7 +102,7 @@ export function Sidebar() {
 
         <div className="flex items-center gap-3 h-9">
           <span
-            className="shrink-0 transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]"
+            className="shrink-0 flex transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]"
             style={{ transform: collapsed ? 'translateX(8px)' : 'none' }}
           >
             <Avatar name={user?.name} username={user?.username} email={user?.email} src={user?.avatarUrl} size={36} />

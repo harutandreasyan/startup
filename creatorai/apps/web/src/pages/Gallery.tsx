@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { motion, type Variants } from 'framer-motion';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   MoreVertical,
@@ -11,6 +12,8 @@ import {
   Images as ImagesIcon,
   Loader2,
   Sparkles,
+  Copy,
+  Check,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { listGenerations, deleteGeneration } from '@creatorai/api-client';
@@ -20,6 +23,12 @@ import { Button } from '../components/common/Button';
 import { ConfirmModal } from '../components/common/ConfirmModal';
 import { Modal } from '../components/common/Modal';
 import { toast } from '../stores/toast.store';
+
+const gridContainer: Variants = { hidden: {}, show: { transition: { staggerChildren: 0.04 } } };
+const gridItem: Variants = {
+  hidden: { opacity: 0, scale: 0.9 },
+  show: { opacity: 1, scale: 1, transition: { type: 'spring', stiffness: 320, damping: 24 } },
+};
 
 async function downloadImage(url: string, id: string) {
   try {
@@ -126,14 +135,21 @@ export function Gallery() {
       )}
 
       {!isLoading && generations.length > 0 && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+        <motion.div
+          variants={gridContainer}
+          initial="hidden"
+          animate="show"
+          className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4"
+        >
           {generations.map((g) => {
             const ready = g.status === 'COMPLETED' && !!g.thumbnailUrl;
             return (
-              <div
+              <motion.div
                 key={g.id}
+                variants={gridItem}
+                whileHover={{ y: -4 }}
                 onClick={() => ready && setPreview(g)}
-                className="group relative aspect-square rounded-2xl overflow-hidden border border-border bg-surface-2 cursor-pointer transition-all hover:border-primary/40"
+                className="group relative aspect-square rounded-2xl overflow-hidden border border-border bg-surface-2 cursor-pointer transition-colors hover:border-primary/40"
               >
                 {ready ? (
                   <img
@@ -170,10 +186,10 @@ export function Gallery() {
                     </button>
                   </>
                 )}
-              </div>
+              </motion.div>
             );
           })}
-        </div>
+        </motion.div>
       )}
 
       {/* Dropdown menu */}
@@ -255,12 +271,8 @@ export function Gallery() {
       <Modal open={!!details} onClose={() => setDetails(null)} title="Details">
         {details && (
           <div className="px-5 pb-5 pt-2 space-y-4">
-            {details.prompt && (
-              <Detail label="Prompt" value={details.prompt} />
-            )}
-            {details.negativePrompt && (
-              <Detail label="Negative prompt" value={details.negativePrompt} />
-            )}
+            {details.prompt && <Detail label="Prompt" value={details.prompt} copyable />}
+            {details.negativePrompt && <Detail label="Negative prompt" value={details.negativePrompt} copyable />}
             <div className="h-px bg-border" />
             <Detail label="Type" value={details.type.replaceAll('_', ' ').toLowerCase()} />
             <Detail label="Model" value={details.model} />
@@ -284,10 +296,36 @@ export function Gallery() {
   );
 }
 
-function Detail({ label, value }: { label: string; value: string }) {
+function Detail({ label, value, copyable }: { label: string; value: string; copyable?: boolean }) {
+  const [copied, setCopied] = useState(false);
+
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopied(true);
+      toast.success('Copied to clipboard');
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      toast.error('Could not copy');
+    }
+  };
+
   return (
     <div>
-      <p className="text-xs text-muted uppercase tracking-wider mb-1">{label}</p>
+      <div className="flex items-center justify-between mb-1">
+        <p className="text-xs text-muted uppercase tracking-wider">{label}</p>
+        {copyable && (
+          <button
+            onClick={copy}
+            aria-label={`Copy ${label.toLowerCase()}`}
+            title="Copy"
+            className="inline-flex items-center gap-1 text-xs text-muted hover:text-primary transition-colors"
+          >
+            {copied ? <Check className="h-3.5 w-3.5 text-success" /> : <Copy className="h-3.5 w-3.5" />}
+            {copied ? 'Copied' : 'Copy'}
+          </button>
+        )}
+      </div>
       <p className="text-sm break-words">{value}</p>
     </div>
   );

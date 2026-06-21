@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { motion, type Variants } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import {
   Image as ImageIcon,
@@ -33,6 +34,12 @@ const ACTIONS: Action[] = [
   { to: '/generate?type=INPAINT', label: 'Inpaint / Edit', desc: 'Edit parts of an image', icon: Brush, tint: { c1: '#ec4899', c2: '#7c5cff' } },
 ];
 
+const container: Variants = { hidden: {}, show: { transition: { staggerChildren: 0.06 } } };
+const item: Variants = {
+  hidden: { opacity: 0, y: 16 },
+  show: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 300, damping: 24 } },
+};
+
 export function Dashboard() {
   const user = useAuthStore((s) => s.user);
   const { data } = useQuery({ queryKey: ['generations'], queryFn: () => listGenerations({ limit: 8 }) });
@@ -40,7 +47,7 @@ export function Dashboard() {
 
   return (
     <div className="space-y-9">
-      <div className="animate-fade-in-up">
+      <div>
         <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight">
           Welcome back{user?.name ? <>, <span className="text-gradient">{user.name}</span></> : ''}
         </h1>
@@ -50,31 +57,38 @@ export function Dashboard() {
       {/* Quick actions with 3D items */}
       <div>
         <h2 className="text-xs font-semibold text-muted uppercase tracking-[0.15em] mb-3">Create</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 stagger">
+        <motion.div
+          variants={container}
+          initial="hidden"
+          animate="show"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4"
+        >
           {ACTIONS.map((a) => {
             const faces = Array.from({ length: 6 }, () => (
               <a.icon className="h-5 w-5 text-white/90" strokeWidth={1.9} />
             ));
             return (
-              <Link key={a.to} to={a.to}>
-                <Card hover glow className="p-5 h-full group cursor-pointer">
-                  <div className="flex items-center gap-4">
-                    <div className="shrink-0 transition-transform duration-300 group-hover:scale-110">
-                      <Cube3D size={46} faces={faces} spin={16} tint={a.tint} mini perspective={500} />
+              <motion.div key={a.to} variants={item} whileHover={{ y: -4 }} whileTap={{ scale: 0.98 }}>
+                <Link to={a.to}>
+                  <Card glow className="p-5 h-full group cursor-pointer">
+                    <div className="flex items-center gap-4">
+                      <div className="shrink-0 transition-transform duration-300 group-hover:scale-110">
+                        <Cube3D size={46} faces={faces} spin={16} tint={a.tint} mini perspective={500} />
+                      </div>
+                      <div className="min-w-0">
+                        <h3 className="font-semibold text-sm flex items-center gap-1.5">
+                          {a.label}
+                          <ArrowRight className="h-3.5 w-3.5 text-primary opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
+                        </h3>
+                        <p className="text-xs text-muted mt-0.5">{a.desc}</p>
+                      </div>
                     </div>
-                    <div className="min-w-0">
-                      <h3 className="font-semibold text-sm flex items-center gap-1.5">
-                        {a.label}
-                        <ArrowRight className="h-3.5 w-3.5 text-primary opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
-                      </h3>
-                      <p className="text-xs text-muted mt-0.5">{a.desc}</p>
-                    </div>
-                  </div>
-                </Card>
-              </Link>
+                  </Card>
+                </Link>
+              </motion.div>
             );
           })}
-        </div>
+        </motion.div>
       </div>
 
       {/* Recent — compact */}
@@ -110,21 +124,27 @@ export function Dashboard() {
             </Link>
           </Card>
         ) : (
-          <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1 [scrollbar-width:none]">
+          <motion.div
+            variants={container}
+            initial="hidden"
+            animate="show"
+            className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1 [scrollbar-width:none]"
+          >
             {recent.map((g) => (
-              <Link
-                key={g.id}
-                to="/gallery"
-                className="group relative h-28 w-28 sm:h-32 sm:w-32 shrink-0 rounded-xl overflow-hidden border border-border bg-surface-2"
-              >
-                <img
-                  src={g.thumbnailUrl!}
-                  alt={g.prompt || ''}
-                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-                />
-              </Link>
+              <motion.div key={g.id} variants={item} whileHover={{ y: -3 }}>
+                <Link
+                  to="/gallery"
+                  className="group relative block h-28 w-28 sm:h-32 sm:w-32 shrink-0 rounded-xl overflow-hidden border border-border bg-surface-2"
+                >
+                  <img
+                    src={g.thumbnailUrl!}
+                    alt={g.prompt || ''}
+                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                  />
+                </Link>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         )}
       </div>
     </div>

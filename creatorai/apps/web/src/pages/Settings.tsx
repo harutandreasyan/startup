@@ -129,7 +129,7 @@ export function Settings() {
   const fieldLabel = 'block text-xs font-medium text-muted uppercase tracking-wider mb-1.5';
 
   return (
-    <div className="max-w-2xl space-y-6 animate-fade-in-up">
+    <div className="max-w-2xl space-y-6">
       <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Settings</h1>
 
       {/* Profile */}
