@@ -179,22 +179,22 @@ export function Generate() {
   };
 
   const inputClass =
-    'w-full px-3.5 py-2.5 bg-surface-2 border border-border rounded-xl text-sm text-foreground placeholder:text-muted focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-shadow';
+    'w-full px-3.5 py-2.5 rounded-xl bg-surface-2 border border-border text-sm text-foreground placeholder:text-muted/70 focus:outline-none focus:border-primary/60 focus:ring-4 focus:ring-primary/15 transition-all duration-200';
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
+    <div className="max-w-3xl mx-auto space-y-6 animate-fade-in-up">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">{TYPE_LABELS[type] || 'Generate'}</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{TYPE_LABELS[type] || 'Generate'}</h1>
           <p className="text-muted text-sm mt-0.5">Describe it, tune it, create it.</p>
         </div>
-        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-surface-2 text-sm font-medium">
+        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl glass text-sm font-medium">
           <Gem className="h-4 w-4 text-primary" />
           {user?.creditBalance ?? 0}
         </span>
       </div>
 
-      <Card className="p-5 sm:p-6 space-y-5">
+      <Card glow className="p-5 sm:p-6 space-y-5">
         {/* Model */}
         <div>
           <label className="block text-xs font-medium text-muted uppercase tracking-wider mb-2">Model</label>
@@ -306,7 +306,7 @@ export function Generate() {
 
       {/* Result */}
       {generation?.status === 'COMPLETED' && generation.outputUrls[0] && (
-        <Card className="overflow-hidden animate-fade-in-up">
+        <Card glow className="overflow-hidden animate-scale-in">
           <img src={generation.outputUrls[0]} alt="Generated result" className="w-full" />
           <div className="p-4 flex flex-wrap gap-2.5">
             <Button onClick={handleDownload} leftIcon={<Download className="h-4 w-4" />}>

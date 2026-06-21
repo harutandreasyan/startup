@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { Image as ImageIcon, Clapperboard, Box, ArrowRight, Sparkles } from 'lucide-react';
 import { Logo } from '../components/common/Logo';
 import { ThemeToggle } from '../components/common/ThemeToggle';
+import { AuroraBackground } from '../components/common/AuroraBackground';
 
 const FEATURES = [
   { icon: ImageIcon, title: 'Image Generation', desc: 'Text-to-image with Flux, SDXL and more. From 2 credits.' },
@@ -11,13 +12,10 @@ const FEATURES = [
 
 export function Landing() {
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      {/* ambient gradient */}
-      <div className="pointer-events-none fixed inset-0 overflow-hidden">
-        <div className="absolute -top-40 left-1/2 -translate-x-1/2 h-[500px] w-[800px] rounded-full bg-primary/20 blur-[120px] opacity-60" />
-      </div>
+    <div className="min-h-screen bg-background text-foreground overflow-hidden">
+      <AuroraBackground />
 
-      <header className="relative flex items-center justify-between px-5 sm:px-8 h-16 max-w-6xl mx-auto">
+      <header className="relative z-10 flex items-center justify-between px-5 sm:px-8 h-16 max-w-6xl mx-auto">
         <Logo />
         <div className="flex items-center gap-2">
           <ThemeToggle />
@@ -33,14 +31,14 @@ export function Landing() {
         </div>
       </header>
 
-      <section className="relative max-w-3xl mx-auto px-5 sm:px-8 pt-20 pb-16 text-center">
-        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface border border-border text-xs font-medium text-muted mb-6">
+      <section className="relative z-10 max-w-3xl mx-auto px-5 sm:px-8 pt-20 pb-16 text-center animate-fade-in-up">
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full glass text-xs font-medium text-muted mb-6">
           <Sparkles className="h-3.5 w-3.5 text-primary" /> AI-powered creative suite
         </span>
         <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight leading-[1.05]">
           Create stunning visuals
           <br />
-          <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">with AI</span>
+          <span className="text-gradient">with AI</span>
         </h1>
         <p className="mt-6 text-lg text-muted max-w-xl mx-auto">
           Generate images, videos, and 3D models — one platform, every creative tool, on all your devices.
@@ -55,14 +53,14 @@ export function Landing() {
         </div>
       </section>
 
-      <section className="relative max-w-5xl mx-auto px-5 sm:px-8 pb-24">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <section className="relative z-10 max-w-5xl mx-auto px-5 sm:px-8 pb-24">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 stagger">
           {FEATURES.map((f) => (
             <div
               key={f.title}
-              className="p-6 rounded-2xl bg-surface border border-border hover:border-primary/40 transition-colors"
+              className="glass glow-border p-6 rounded-2xl transition-transform duration-300 hover:-translate-y-1"
             >
-              <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-primary/15 to-accent/15 flex items-center justify-center mb-4">
+              <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-primary/20 to-accent/15 ring-1 ring-inset ring-primary/15 flex items-center justify-center mb-4">
                 <f.icon className="h-5 w-5 text-primary" />
               </div>
               <h3 className="font-semibold">{f.title}</h3>
@@ -72,7 +70,7 @@ export function Landing() {
         </div>
       </section>
 
-      <footer className="relative border-t border-border py-8 text-center text-muted text-sm">
+      <footer className="relative z-10 border-t border-border py-8 text-center text-muted text-sm">
         © {new Date().getFullYear()} CreatorAI. All rights reserved.
       </footer>
     </div>

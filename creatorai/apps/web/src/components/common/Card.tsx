@@ -2,13 +2,15 @@ import type { HTMLAttributes } from 'react';
 
 interface CardProps extends HTMLAttributes<HTMLDivElement> {
   hover?: boolean;
+  glow?: boolean;
 }
 
-export function Card({ hover = false, className = '', children, ...props }: CardProps) {
+/** Glassmorphic surface. `glow` adds a gradient border that lights on hover. */
+export function Card({ hover = false, glow = false, className = '', children, ...props }: CardProps) {
   return (
     <div
-      className={`bg-surface border border-border rounded-2xl transition-all duration-200 ${
-        hover ? 'hover:border-primary/40 hover:shadow-lg hover:shadow-black/5 dark:hover:shadow-black/30' : ''
+      className={`glass rounded-2xl ${glow ? 'glow-border' : ''} ${
+        hover ? 'transition-transform duration-300 hover:-translate-y-0.5' : ''
       } ${className}`}
       {...props}
     >

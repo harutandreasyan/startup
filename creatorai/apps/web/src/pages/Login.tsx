@@ -7,6 +7,8 @@ import { apiErrorMessage } from '../lib/apiError';
 import { Logo } from '../components/common/Logo';
 import { ThemeToggle } from '../components/common/ThemeToggle';
 import { Button } from '../components/common/Button';
+import { Input, PasswordInput } from '../components/common/Input';
+import { AuroraBackground } from '../components/common/AuroraBackground';
 
 export function Login() {
   const [login, setLogin] = useState('');
@@ -39,47 +41,43 @@ export function Login() {
     });
   };
 
-  const inputClass =
-    'w-full px-3.5 py-2.5 bg-surface-2 border border-border rounded-xl text-sm text-foreground placeholder:text-muted focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-shadow';
-
   return (
-    <div className="min-h-screen bg-background text-foreground flex items-center justify-center px-4 relative">
-      <div className="pointer-events-none fixed inset-0 overflow-hidden">
-        <div className="absolute -top-40 left-1/2 -translate-x-1/2 h-[400px] w-[600px] rounded-full bg-primary/15 blur-[120px]" />
-      </div>
-      <div className="absolute top-4 right-4">
+    <div className="min-h-screen bg-background text-foreground flex items-center justify-center px-4 relative overflow-hidden">
+      <AuroraBackground />
+      <div className="absolute top-4 right-4 z-20">
         <ThemeToggle />
       </div>
 
-      <div className="relative w-full max-w-md">
+      <div className="relative z-10 w-full max-w-md animate-scale-in">
         <div className="flex flex-col items-center mb-8">
           <Link to="/"><Logo /></Link>
-          <p className="text-muted mt-3 text-sm">Welcome back — sign in to continue</p>
+          <h1 className="text-2xl font-bold tracking-tight mt-5">Welcome back</h1>
+          <p className="text-muted mt-1 text-sm">Sign in to continue creating</p>
         </div>
 
-        <div className="bg-surface border border-border rounded-2xl p-7 sm:p-8 shadow-xl shadow-black/5 dark:shadow-black/30">
+        <div className="glass glow-border rounded-2xl p-7 sm:p-8">
           <Button variant="secondary" fullWidth onClick={handleGoogleLogin} className="mb-6">
             <GoogleMark /> Continue with Google
           </Button>
 
           <div className="relative mb-6">
             <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-border" /></div>
-            <div className="relative flex justify-center"><span className="px-3 bg-surface text-xs text-muted">or</span></div>
+            <div className="relative flex justify-center"><span className="px-3 bg-surface-solid text-xs text-muted rounded-full">or</span></div>
           </div>
 
           <form onSubmit={handleLogin} className="space-y-4">
             {error && (
-              <div className="flex items-center gap-2 p-3 bg-danger/10 border border-danger/20 rounded-xl text-danger text-sm">
+              <div className="flex items-center gap-2 p-3 bg-danger/10 border border-danger/20 rounded-xl text-danger text-sm animate-fade-in">
                 <AlertCircle className="h-4 w-4 shrink-0" /> {error}
               </div>
             )}
             <div>
               <label className="block text-sm font-medium mb-1.5">Email or username</label>
-              <input type="text" value={login} onChange={(e) => setLogin(e.target.value)} autoCapitalize="none" className={inputClass} required />
+              <Input type="text" value={login} onChange={(e) => setLogin(e.target.value)} autoCapitalize="none" required />
             </div>
             <div>
               <label className="block text-sm font-medium mb-1.5">Password</label>
-              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className={inputClass} required />
+              <PasswordInput value={password} onChange={(e) => setPassword(e.target.value)} required />
             </div>
             <Button type="submit" fullWidth size="lg" loading={loading}>Sign in</Button>
           </form>

@@ -66,7 +66,7 @@ export function Settings() {
   };
 
   const inputClass =
-    'w-full max-w-sm px-3.5 py-2.5 bg-surface-2 border border-border rounded-xl text-sm text-foreground placeholder:text-muted focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-shadow';
+    'w-full max-w-sm px-3.5 py-2.5 rounded-xl bg-surface-2 border border-border text-sm text-foreground placeholder:text-muted/70 focus:outline-none focus:border-primary/60 focus:ring-4 focus:ring-primary/15 transition-all duration-200';
   const fieldLabel = 'block text-xs font-medium text-muted uppercase tracking-wider mb-1.5';
 
   return (

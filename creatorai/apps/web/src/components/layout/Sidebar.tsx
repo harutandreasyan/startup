@@ -11,7 +11,7 @@ export function Sidebar() {
   const { signOut } = useAuth();
 
   return (
-    <aside className="hidden lg:flex w-64 shrink-0 flex-col h-screen sticky top-0 border-r border-border bg-surface/60 backdrop-blur-xl">
+    <aside className="hidden lg:flex w-64 shrink-0 flex-col h-screen sticky top-0 z-10 border-r border-border bg-surface backdrop-blur-2xl">
       <div className="px-6 h-16 flex items-center">
         <Logo />
       </div>
@@ -22,15 +22,19 @@ export function Sidebar() {
             key={item.to}
             to={item.to}
             className={({ isActive }) =>
-              `group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
+              `group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
                 isActive
-                  ? 'bg-primary text-primary-foreground shadow-sm shadow-primary/25'
+                  ? 'bg-gradient-to-r from-primary to-accent text-white shadow-lg shadow-primary/30'
                   : 'text-muted hover:text-foreground hover:bg-surface-2'
               }`
             }
           >
-            <item.icon className="h-[18px] w-[18px]" />
-            {item.label}
+            {({ isActive }) => (
+              <>
+                <item.icon className="h-[18px] w-[18px]" strokeWidth={isActive ? 2.5 : 2} />
+                {item.label}
+              </>
+            )}
           </NavLink>
         ))}
       </nav>
