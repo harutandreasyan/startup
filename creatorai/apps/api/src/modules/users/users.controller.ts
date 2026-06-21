@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Patch, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpException, Patch, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '../../common/guards/auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { PrismaService } from '../prisma/prisma.service';
@@ -42,11 +42,26 @@ export class UsersController {
   }
 
   @Patch('me')
-  async updateMe(@CurrentUser() user: any, @Body() body: { name?: string }) {
+  async updateMe(@CurrentUser() user: any, @Body() body: { name?: string; avatarUrl?: string }) {
     const name = typeof body.name === 'string' ? body.name.trim().slice(0, 80) : undefined;
+
+    let avatarUrl: string | undefined;
+    if (typeof body.avatarUrl === 'string') {
+      const v = body.avatarUrl.trim();
+      // Accept an http(s) URL or a small data URL (client resizes before upload).
+      const isDataUrl = v.startsWith('data:image/');
+      const isHttp = v.startsWith('http://') || v.startsWith('https://');
+      if (v === '') avatarUrl = '';
+      else if ((isDataUrl || isHttp) && v.length <= 500_000) avatarUrl = v;
+      else throw new HttpException('Invalid or too large avatar image.', 400);
+    }
+
     const updated = await this.prisma.user.update({
       where: { id: user.id },
-      data: { ...(name !== undefined ? { name } : {}) },
+      data: {
+        ...(name !== undefined ? { name } : {}),
+        ...(avatarUrl !== undefined ? { avatarUrl: avatarUrl || null } : {}),
+      },
     });
     return this.toProfile(updated, await this.activePlan(user.id));
   }

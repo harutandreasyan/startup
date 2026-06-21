@@ -58,8 +58,8 @@ export function Register() {
         </div>
 
         <div className="glass glow-border rounded-2xl p-7 sm:p-8">
-          <Button variant="secondary" fullWidth onClick={handleGoogleLogin} className="mb-6">
-            <GoogleMark /> Continue with Google
+          <Button variant="secondary" fullWidth onClick={handleGoogleLogin} className="mb-6" leftIcon={<GoogleMark />}>
+            Continue with Google
           </Button>
 
           <div className="relative mb-6">

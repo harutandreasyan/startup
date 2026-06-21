@@ -1,26 +1,35 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Check, LogOut, AlertCircle, Crown, ArrowUpRight } from 'lucide-react';
+import { Check, LogOut, AlertCircle, Crown, ArrowUpRight, Camera, Loader2, Trash2 } from 'lucide-react';
 import { updateProfile, deleteAccount, getSubscription, cancelSubscription, getMe } from '@creatorai/api-client';
 import { useAuth } from '../hooks/useAuth';
 import { useAuthStore } from '../stores/auth.store';
 import { apiErrorMessage } from '../lib/apiError';
+import { fileToAvatarDataUrl } from '../lib/image';
 import { Card } from '../components/common/Card';
 import { Button } from '../components/common/Button';
+import { Avatar } from '../components/common/Avatar';
+import { ConfirmModal } from '../components/common/ConfirmModal';
 
 export function Settings() {
   const { user, signOut } = useAuth();
   const setUser = useAuthStore((s) => s.setUser);
   const queryClient = useQueryClient();
+  const fileRef = useRef<HTMLInputElement>(null);
 
   const [name, setName] = useState(user?.name ?? '');
   const [saving, setSaving] = useState(false);
   const [savedMsg, setSavedMsg] = useState('');
   const [error, setError] = useState('');
-  const [confirmingDelete, setConfirmingDelete] = useState(false);
-  const [deleting, setDeleting] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [cancelling, setCancelling] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  // modals
+  const [showSignOut, setShowSignOut] = useState(false);
+  const [showDelete, setShowDelete] = useState(false);
+  const [showCancelSub, setShowCancelSub] = useState(false);
 
   const { data: subscription } = useQuery({ queryKey: ['subscription'], queryFn: getSubscription });
   const dirty = name.trim() !== (user?.name ?? '');
@@ -39,6 +48,34 @@ export function Settings() {
     }
   };
 
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    setError('');
+    setUploading(true);
+    try {
+      const dataUrl = await fileToAvatarDataUrl(file);
+      setUser(await updateProfile({ avatarUrl: dataUrl }));
+    } catch (err) {
+      setError(apiErrorMessage(err, 'Could not update photo.'));
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleRemoveAvatar = async () => {
+    setError('');
+    setUploading(true);
+    try {
+      setUser(await updateProfile({ avatarUrl: '' }));
+    } catch (err) {
+      setError(apiErrorMessage(err, 'Could not remove photo.'));
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const handleCancelSubscription = async () => {
     setCancelling(true);
     setError('');
@@ -46,6 +83,7 @@ export function Settings() {
       await cancelSubscription();
       await queryClient.invalidateQueries({ queryKey: ['subscription'] });
       setUser(await getMe());
+      setShowCancelSub(false);
     } catch (err) {
       setError(apiErrorMessage(err, 'Could not cancel subscription.'));
     } finally {
@@ -70,19 +108,49 @@ export function Settings() {
   const fieldLabel = 'block text-xs font-medium text-muted uppercase tracking-wider mb-1.5';
 
   return (
-    <div className="max-w-2xl space-y-6">
+    <div className="max-w-2xl space-y-6 animate-fade-in-up">
       <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Settings</h1>
 
       {error && (
         <div className="flex items-center gap-2 p-3 bg-danger/10 border border-danger/20 rounded-xl text-danger text-sm">
-          <AlertCircle className="h-4 w-4 shrink-0" />
-          {error}
+          <AlertCircle className="h-4 w-4 shrink-0" /> {error}
         </div>
       )}
 
       {/* Profile */}
-      <Card className="p-6">
+      <Card glow className="p-6">
         <h2 className="font-semibold mb-5">Profile</h2>
+
+        {/* Avatar */}
+        <div className="flex items-center gap-4 mb-6">
+          <div className="relative">
+            <Avatar name={user?.name} username={user?.username} email={user?.email} src={user?.avatarUrl} size={72} />
+            <button
+              onClick={() => fileRef.current?.click()}
+              disabled={uploading}
+              aria-label="Change photo"
+              className="absolute -bottom-1 -right-1 h-8 w-8 rounded-full bg-primary text-white flex items-center justify-center shadow-lg shadow-primary/30 hover:bg-primary-hover transition-colors ring-2 ring-[var(--background)]"
+            >
+              {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
+            </button>
+          </div>
+          <div>
+            <p className="text-sm font-medium">Profile photo</p>
+            <p className="text-xs text-muted mb-2">JPG or PNG, square looks best.</p>
+            <div className="flex gap-2">
+              <Button size="sm" variant="secondary" onClick={() => fileRef.current?.click()} disabled={uploading}>
+                Upload
+              </Button>
+              {user?.avatarUrl && (
+                <Button size="sm" variant="ghost" onClick={handleRemoveAvatar} disabled={uploading}>
+                  Remove
+                </Button>
+              )}
+            </div>
+            <input ref={fileRef} type="file" accept="image/*" onChange={handleAvatarChange} className="hidden" />
+          </div>
+        </div>
+
         <div className="space-y-5">
           <div>
             <label className={fieldLabel}>Email</label>
@@ -121,7 +189,7 @@ export function Settings() {
       </Card>
 
       {/* Subscription */}
-      <Card className="p-6">
+      <Card glow className="p-6">
         <h2 className="font-semibold mb-5 flex items-center gap-2">
           <Crown className="h-4 w-4 text-primary" /> Subscription
         </h2>
@@ -131,7 +199,7 @@ export function Settings() {
               <span><span className="text-muted">Plan: </span><span className="font-medium">{subscription.plan}</span></span>
               <span><span className="text-muted">Renews: </span>{new Date(subscription.currentPeriodEnd).toLocaleDateString()}</span>
             </div>
-            <Button variant="secondary" onClick={handleCancelSubscription} loading={cancelling}>
+            <Button variant="secondary" onClick={() => setShowCancelSub(true)}>
               Cancel subscription
             </Button>
           </div>
@@ -146,39 +214,55 @@ export function Settings() {
       </Card>
 
       {/* Account */}
-      <Card className="p-6">
-        <h2 className="font-semibold mb-5">Account</h2>
-        <Button variant="secondary" onClick={signOut} leftIcon={<LogOut className="h-4 w-4" />}>
+      <Card glow className="p-6">
+        <h2 className="font-semibold mb-1">Account</h2>
+        <p className="text-sm text-muted mb-4">Sign out of CreatorAI on this device.</p>
+        <Button variant="secondary" onClick={() => setShowSignOut(true)} leftIcon={<LogOut className="h-4 w-4" />}>
           Sign out
         </Button>
       </Card>
 
       {/* Danger zone */}
       <Card className="p-6 border-danger/30">
-        <h2 className="font-semibold mb-2 text-danger">Danger zone</h2>
+        <h2 className="font-semibold mb-1 text-danger">Danger zone</h2>
         <p className="text-sm text-muted mb-4">
           Permanently delete your account and all data. This cannot be undone.
         </p>
-        {!confirmingDelete ? (
-          <Button variant="danger" onClick={() => setConfirmingDelete(true)}>
-            Delete account
-          </Button>
-        ) : (
-          <div className="flex flex-wrap items-center gap-3">
-            <span className="text-sm">Are you sure?</span>
-            <button
-              onClick={handleDelete}
-              disabled={deleting}
-              className="px-4 py-2.5 rounded-xl bg-danger text-white text-sm font-medium hover:opacity-90 disabled:opacity-50 transition-opacity"
-            >
-              {deleting ? 'Deleting…' : 'Yes, delete everything'}
-            </button>
-            <Button variant="ghost" onClick={() => setConfirmingDelete(false)} disabled={deleting}>
-              Cancel
-            </Button>
-          </div>
-        )}
+        <Button variant="danger" onClick={() => setShowDelete(true)} leftIcon={<Trash2 className="h-4 w-4" />}>
+          Delete account
+        </Button>
       </Card>
+
+      {/* Modals */}
+      <ConfirmModal
+        open={showSignOut}
+        title="Sign out?"
+        description="You'll need to sign in again to access your creations."
+        confirmLabel="Sign out"
+        onConfirm={signOut}
+        onCancel={() => setShowSignOut(false)}
+      />
+      <ConfirmModal
+        open={showCancelSub}
+        title="Cancel subscription?"
+        description="You'll keep access until the end of your current billing period, then move to the Free plan."
+        confirmLabel="Cancel subscription"
+        cancelLabel="Keep it"
+        variant="danger"
+        loading={cancelling}
+        onConfirm={handleCancelSubscription}
+        onCancel={() => setShowCancelSub(false)}
+      />
+      <ConfirmModal
+        open={showDelete}
+        title="Delete account?"
+        description="This permanently deletes your account, credits, and all generated images. This action cannot be undone."
+        confirmLabel="Delete everything"
+        variant="danger"
+        loading={deleting}
+        onConfirm={handleDelete}
+        onCancel={() => setShowDelete(false)}
+      />
     </div>
   );
 }

@@ -26,7 +26,7 @@ export async function getMe(): Promise<UserProfile> {
   return data;
 }
 
-export async function updateProfile(input: { name?: string }): Promise<UserProfile> {
+export async function updateProfile(input: { name?: string; avatarUrl?: string }): Promise<UserProfile> {
   const { data } = await api.patch('/users/me', input);
   return data;
 }

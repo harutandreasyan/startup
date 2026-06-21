@@ -6,10 +6,12 @@ import { listGenerations, deleteGeneration } from '@creatorai/api-client';
 import type { Generation } from '@creatorai/shared';
 import { Card } from '../components/common/Card';
 import { Button } from '../components/common/Button';
+import { ConfirmModal } from '../components/common/ConfirmModal';
 
 export function Gallery() {
   const queryClient = useQueryClient();
   const [selected, setSelected] = useState<Generation | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
   const { data, isLoading } = useQuery({
@@ -35,11 +37,13 @@ export function Gallery() {
     }
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async () => {
+    if (!selected) return;
     setDeleting(true);
     try {
-      await deleteGeneration(id);
+      await deleteGeneration(selected.id);
       await queryClient.invalidateQueries({ queryKey: ['generations'] });
+      setConfirmDelete(false);
       setSelected(null);
     } finally {
       setDeleting(false);
@@ -156,9 +160,8 @@ export function Gallery() {
                 </a>
                 <Button
                   variant="danger"
-                  onClick={() => handleDelete(selected.id)}
-                  loading={deleting}
-                  leftIcon={!deleting && <Trash2 className="h-4 w-4" />}
+                  onClick={() => setConfirmDelete(true)}
+                  leftIcon={<Trash2 className="h-4 w-4" />}
                   className="ml-auto"
                 >
                   Delete
@@ -168,6 +171,17 @@ export function Gallery() {
           </Card>
         </div>
       )}
+
+      <ConfirmModal
+        open={confirmDelete}
+        title="Delete this creation?"
+        description="This permanently removes the image from your gallery. This cannot be undone."
+        confirmLabel="Delete"
+        variant="danger"
+        loading={deleting}
+        onConfirm={handleDelete}
+        onCancel={() => setConfirmDelete(false)}
+      />
     </div>
   );
 }

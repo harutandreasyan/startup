@@ -1,14 +1,18 @@
+import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { Gem, LogOut } from 'lucide-react';
 import { useAuthStore } from '../../stores/auth.store';
 import { useAuth } from '../../hooks/useAuth';
 import { Logo } from '../common/Logo';
 import { ThemeToggle } from '../common/ThemeToggle';
+import { Avatar } from '../common/Avatar';
+import { ConfirmModal } from '../common/ConfirmModal';
 import { NAV_ITEMS } from './navItems';
 
 export function Sidebar() {
   const user = useAuthStore((s) => s.user);
   const { signOut } = useAuth();
+  const [confirmSignOut, setConfirmSignOut] = useState(false);
 
   return (
     <aside className="hidden lg:flex w-64 shrink-0 flex-col h-screen sticky top-0 z-10 border-r border-border bg-surface backdrop-blur-2xl">
@@ -46,9 +50,7 @@ export function Sidebar() {
         </div>
 
         <div className="flex items-center gap-3 p-3 rounded-xl bg-surface-2 border border-border">
-          <div className="h-9 w-9 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white text-sm font-semibold shrink-0">
-            {(user?.name || user?.username || user?.email || '?')[0].toUpperCase()}
-          </div>
+          <Avatar name={user?.name} username={user?.username} email={user?.email} src={user?.avatarUrl} size={36} />
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-foreground truncate">
               {user?.name || user?.username || 'User'}
@@ -59,7 +61,7 @@ export function Sidebar() {
             </p>
           </div>
           <button
-            onClick={signOut}
+            onClick={() => setConfirmSignOut(true)}
             aria-label="Sign out"
             title="Sign out"
             className="h-8 w-8 inline-flex items-center justify-center rounded-lg text-muted hover:text-danger hover:bg-danger/10 transition-colors"
@@ -68,6 +70,15 @@ export function Sidebar() {
           </button>
         </div>
       </div>
+
+      <ConfirmModal
+        open={confirmSignOut}
+        title="Sign out?"
+        description="You'll need to sign in again to access your creations."
+        confirmLabel="Sign out"
+        onConfirm={signOut}
+        onCancel={() => setConfirmSignOut(false)}
+      />
     </aside>
   );
 }

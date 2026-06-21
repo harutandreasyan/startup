@@ -7,18 +7,13 @@ import {
   Scissors,
   Maximize2,
   Brush,
-  Gem,
-  Layers,
-  Zap,
-  BarChart3,
   ArrowRight,
   Sparkles,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
-import { listGenerations, getStats } from '@creatorai/api-client';
+import { listGenerations } from '@creatorai/api-client';
 import { useAuthStore } from '../stores/auth.store';
 import { Card } from '../components/common/Card';
-import { CountUp } from '../components/common/CountUp';
 
 const ACTIONS: { to: string; label: string; desc: string; icon: LucideIcon }[] = [
   { to: '/generate?type=TEXT_TO_IMAGE', label: 'Text to Image', desc: 'Generate images from prompts', icon: ImageIcon },
@@ -32,15 +27,7 @@ const ACTIONS: { to: string; label: string; desc: string; icon: LucideIcon }[] =
 export function Dashboard() {
   const user = useAuthStore((s) => s.user);
   const { data } = useQuery({ queryKey: ['generations'], queryFn: () => listGenerations({ limit: 8 }) });
-  const { data: stats } = useQuery({ queryKey: ['stats'], queryFn: getStats });
   const recent = (data?.data ?? []).filter((g) => g.status === 'COMPLETED' && g.thumbnailUrl);
-
-  const statCards: { label: string; value: number; icon: LucideIcon }[] = [
-    { label: 'Credits', value: user?.creditBalance ?? 0, icon: Gem },
-    { label: 'Creations', value: stats?.completedGenerations ?? 0, icon: Layers },
-    { label: 'Credits used', value: stats?.creditsSpent ?? 0, icon: Zap },
-    { label: 'Total runs', value: stats?.totalGenerations ?? 0, icon: BarChart3 },
-  ];
 
   return (
     <div className="space-y-9">
@@ -49,21 +36,6 @@ export function Dashboard() {
           Welcome back{user?.name ? <>, <span className="text-gradient">{user.name}</span></> : ''}
         </h1>
         <p className="text-muted mt-1.5">What would you like to create today?</p>
-      </div>
-
-      {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 stagger">
-        {statCards.map((s) => (
-          <Card key={s.label} glow className="p-4 sm:p-5 group">
-            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-primary/20 to-accent/15 ring-1 ring-inset ring-primary/20 flex items-center justify-center mb-3 group-hover:scale-105 transition-transform">
-              <s.icon className="h-[18px] w-[18px] text-primary" />
-            </div>
-            <div className="text-2xl sm:text-3xl font-bold tracking-tight tabular-nums">
-              <CountUp value={s.value} />
-            </div>
-            <div className="text-xs text-muted mt-0.5">{s.label}</div>
-          </Card>
-        ))}
       </div>
 
       {/* Quick actions */}
@@ -107,7 +79,7 @@ export function Dashboard() {
             <p className="text-muted text-sm">No creations yet — your generated work will show up here.</p>
             <Link
               to="/generate"
-              className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary-hover transition-colors"
+              className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-xl btn-glow text-white text-sm font-medium"
             >
               <Sparkles className="h-4 w-4" /> Create your first
             </Link>

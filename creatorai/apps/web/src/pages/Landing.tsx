@@ -3,6 +3,7 @@ import { Image as ImageIcon, Clapperboard, Box, ArrowRight, Sparkles } from 'luc
 import { Logo } from '../components/common/Logo';
 import { ThemeToggle } from '../components/common/ThemeToggle';
 import { AuroraBackground } from '../components/common/AuroraBackground';
+import { HeroScene } from '../components/three/HeroScene';
 
 const FEATURES = [
   { icon: ImageIcon, title: 'Image Generation', desc: 'Text-to-image with Flux, SDXL and more. From 2 credits.' },
@@ -31,25 +32,34 @@ export function Landing() {
         </div>
       </header>
 
-      <section className="relative z-10 max-w-3xl mx-auto px-5 sm:px-8 pt-20 pb-16 text-center animate-fade-in-up">
-        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full glass text-xs font-medium text-muted mb-6">
-          <Sparkles className="h-3.5 w-3.5 text-primary" /> AI-powered creative suite
-        </span>
-        <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight leading-[1.05]">
-          Create stunning visuals
-          <br />
-          <span className="text-gradient">with AI</span>
-        </h1>
-        <p className="mt-6 text-lg text-muted max-w-xl mx-auto">
-          Generate images, videos, and 3D models — one platform, every creative tool, on all your devices.
-        </p>
-        <div className="mt-9 flex items-center justify-center gap-3">
-          <Link
-            to="/register"
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-primary-foreground font-medium hover:bg-primary-hover transition-all shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 active:scale-[0.98]"
-          >
-            Start free — 20 credits <ArrowRight className="h-4 w-4" />
-          </Link>
+      <section className="relative z-10 max-w-6xl mx-auto px-5 sm:px-8 pt-12 lg:pt-20 pb-16 grid lg:grid-cols-2 gap-8 items-center">
+        <div className="text-center lg:text-left animate-fade-in-up order-last lg:order-first">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full glass text-xs font-medium text-muted mb-6">
+            <Sparkles className="h-3.5 w-3.5 text-primary" /> AI-powered creative suite
+          </span>
+          <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight leading-[1.05]">
+            Create stunning visuals
+            <br />
+            <span className="text-gradient">with AI</span>
+          </h1>
+          <p className="mt-6 text-lg text-muted max-w-xl mx-auto lg:mx-0">
+            Generate images, videos, and 3D models — one platform, every creative tool, on all your devices.
+          </p>
+          <div className="mt-9 flex items-center justify-center lg:justify-start gap-3">
+            <Link
+              to="/register"
+              className="btn-glow inline-flex items-center gap-2 px-6 py-3 rounded-xl text-white font-medium active:scale-[0.98]"
+            >
+              <span className="relative z-10 inline-flex items-center gap-2">
+                Start free — 20 credits <ArrowRight className="h-4 w-4" />
+              </span>
+            </Link>
+          </div>
+        </div>
+
+        {/* 3D hero */}
+        <div className="h-64 sm:h-80 lg:h-[420px] order-first lg:order-last animate-fade-in">
+          <HeroScene />
         </div>
       </section>
 
