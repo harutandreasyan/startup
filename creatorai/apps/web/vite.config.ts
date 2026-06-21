@@ -7,4 +7,12 @@ export default defineConfig({
   server: {
     port: 5180,
   },
+  // In an npm-workspaces monorepo, react/react-dom can resolve as two module
+  // instances (causing "Invalid hook call"). Force a single instance.
+  resolve: {
+    dedupe: ['react', 'react-dom'],
+  },
+  optimizeDeps: {
+    include: ['react', 'react-dom', 'lucide-react'],
+  },
 })

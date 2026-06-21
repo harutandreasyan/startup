@@ -1,12 +1,24 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
+import {
+  Sparkles,
+  Download,
+  ExternalLink,
+  RefreshCw,
+  Maximize2,
+  Gem,
+  ChevronDown,
+  AlertCircle,
+} from 'lucide-react';
 import { createGeneration, getGeneration, getMe } from '@creatorai/api-client';
 import type { Generation, GenerationType } from '@creatorai/shared';
 import { useAuthStore } from '../stores/auth.store';
 import { useModels } from '../hooks/useModels';
 import { connectWebSocket, onProgress } from '../lib/websocket';
 import { apiErrorMessage, apiErrorStatus } from '../lib/apiError';
+import { Button } from '../components/common/Button';
+import { Card } from '../components/common/Card';
 
 const TYPE_LABELS: Record<string, string> = {
   TEXT_TO_IMAGE: 'Text to Image',
@@ -19,10 +31,18 @@ const TYPE_LABELS: Record<string, string> = {
 
 const PROMPTLESS_TYPES = new Set(['BACKGROUND_REMOVAL', 'UPSCALE']);
 
+const SIZES = [
+  { value: '1024x1024', label: 'Square · 1024' },
+  { value: '768x1024', label: 'Portrait · 768×1024' },
+  { value: '1024x768', label: 'Landscape · 1024×768' },
+  { value: '512x512', label: 'Small · 512' },
+];
+
 export function Generate() {
   const [searchParams] = useSearchParams();
   const type = (searchParams.get('type') || 'TEXT_TO_IMAGE') as GenerationType;
   const user = useAuthStore((s) => s.user);
+  const setUser = useAuthStore((s) => s.setUser);
   const queryClient = useQueryClient();
 
   const { data: models, isLoading: modelsLoading } = useModels(type);
@@ -36,23 +56,18 @@ export function Generate() {
   const [generation, setGeneration] = useState<Generation | null>(null);
   const [error, setError] = useState('');
 
-  const setUser = useAuthStore((s) => s.setUser);
-
   const needsPrompt = !PROMPTLESS_TYPES.has(type);
-  // The select falls back to the first model when nothing is chosen yet, so we
-  // never need to write default state into an effect.
   const effectiveModelSlug = selectedModel || models?.[0]?.slug || '';
   const currentModel = useMemo(
     () => models?.find((m) => m.slug === effectiveModelSlug) || models?.[0],
     [models, effectiveModelSlug],
   );
 
-  // Refetch the user profile so the credit balance shown in the UI stays current
   const refreshBalance = async () => {
     try {
       setUser(await getMe());
     } catch {
-      // ignore — balance will refresh on next navigation
+      /* ignore */
     }
   };
 
@@ -61,7 +76,6 @@ export function Generate() {
     queryClient.invalidateQueries({ queryKey: ['generations'] });
   };
 
-  // Subscribe to live progress updates (instant path)
   useEffect(() => {
     connectWebSocket();
     const unsub = onProgress((p) => {
@@ -82,12 +96,10 @@ export function Generate() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Polling fallback — guarantees the UI resolves even if the WebSocket drops.
   useEffect(() => {
     const id = generation?.id;
     const status = generation?.status;
     if (!id || (status !== 'QUEUED' && status !== 'PROCESSING')) return;
-
     const interval = setInterval(async () => {
       try {
         const fresh = await getGeneration(id);
@@ -97,10 +109,9 @@ export function Generate() {
           onTerminal();
         }
       } catch {
-        // keep polling
+        /* keep polling */
       }
     }, 2000);
-
     return () => clearInterval(interval);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [generation?.id, generation?.status]);
@@ -111,7 +122,6 @@ export function Generate() {
     if (!currentModel) return;
     if (needsPrompt && !prompt.trim()) return;
     setError('');
-
     try {
       const [width, height] = size.split('x').map(Number);
       const params: Record<string, unknown> = {};
@@ -120,7 +130,6 @@ export function Generate() {
         params.height = height;
         if (seed.trim()) params.seed = Number(seed);
       }
-
       const result = await createGeneration({
         type,
         model: currentModel.slug,
@@ -129,15 +138,13 @@ export function Generate() {
         params,
       });
       setGeneration(result);
-      refreshBalance(); // credits are debited on submit
+      refreshBalance();
     } catch (err) {
       if (apiErrorStatus(err) === 402) setError('Not enough credits. Top up to keep creating.');
       else setError(apiErrorMessage(err, 'Generation failed to start.'));
     }
   };
 
-  // Download the result to the user's device (works cross-origin since the
-  // image host sends Access-Control-Allow-Origin: *).
   const handleDownload = async () => {
     const url = generation?.outputUrls[0];
     if (!url) return;
@@ -153,90 +160,93 @@ export function Generate() {
       a.remove();
       URL.revokeObjectURL(objectUrl);
     } catch {
-      window.open(url, '_blank', 'noopener'); // fallback: open in a new tab
+      window.open(url, '_blank', 'noopener');
     }
   };
 
-  // Re-run the same prompt with a fresh random seed (free with Pollinations).
-  const handleRegenerate = () => {
-    handleGenerate();
-  };
-
-  // Upscale the current result. Uses a premium (Replicate) model — requires billing.
   const handleUpscale = async () => {
     const url = generation?.outputUrls[0];
     if (!url) return;
     setError('');
     try {
-      const result = await createGeneration({
-        type: 'UPSCALE',
-        model: 'real-esrgan',
-        inputImageUrl: url,
-      });
+      const result = await createGeneration({ type: 'UPSCALE', model: 'real-esrgan', inputImageUrl: url });
       setGeneration(result);
       refreshBalance();
     } catch (err) {
-      if (apiErrorStatus(err) === 402) {
-        setError('Not enough credits to upscale.');
-      } else {
-        setError(apiErrorMessage(err, 'Upscale failed to start.'));
-      }
+      if (apiErrorStatus(err) === 402) setError('Not enough credits to upscale.');
+      else setError(apiErrorMessage(err, 'Upscale failed to start.'));
     }
   };
 
+  const inputClass =
+    'w-full px-3.5 py-2.5 bg-surface-2 border border-border rounded-xl text-sm text-foreground placeholder:text-muted focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-shadow';
+
   return (
-    <div className="text-white max-w-4xl">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">{TYPE_LABELS[type] || 'Generate'}</h1>
-        <span className="text-sm text-gray-400">💎 {user?.creditBalance ?? 0} credits</span>
+    <div className="max-w-3xl mx-auto space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">{TYPE_LABELS[type] || 'Generate'}</h1>
+          <p className="text-muted text-sm mt-0.5">Describe it, tune it, create it.</p>
+        </div>
+        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-surface-2 text-sm font-medium">
+          <Gem className="h-4 w-4 text-primary" />
+          {user?.creditBalance ?? 0}
+        </span>
       </div>
 
-      <div className="space-y-4">
+      <Card className="p-5 sm:p-6 space-y-5">
+        {/* Model */}
         <div>
-          <label className="block text-sm text-gray-300 mb-2">Model</label>
-          <select
-            value={effectiveModelSlug}
-            onChange={(e) => setSelectedModel(e.target.value)}
-            disabled={modelsLoading || !models?.length}
-            className="w-full px-3 py-2.5 bg-gray-900 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-indigo-500"
-          >
-            {modelsLoading && <option>Loading models…</option>}
-            {!modelsLoading && !models?.length && <option>No models available</option>}
-            {models?.map((m) => (
-              <option key={m.slug} value={m.slug}>
-                {m.name} — {m.creditCost} credits
-              </option>
-            ))}
-          </select>
+          <label className="block text-xs font-medium text-muted uppercase tracking-wider mb-2">Model</label>
+          <div className="relative">
+            <select
+              value={effectiveModelSlug}
+              onChange={(e) => setSelectedModel(e.target.value)}
+              disabled={modelsLoading || !models?.length}
+              className={`${inputClass} appearance-none pr-10 cursor-pointer`}
+            >
+              {modelsLoading && <option>Loading models…</option>}
+              {!modelsLoading && !models?.length && <option>No models available</option>}
+              {models?.map((m) => (
+                <option key={m.slug} value={m.slug}>
+                  {m.name} — {m.creditCost} credits
+                </option>
+              ))}
+            </select>
+            <ChevronDown className="h-4 w-4 text-muted absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+          </div>
         </div>
 
         {needsPrompt && (
           <div>
-            <label className="block text-sm text-gray-300 mb-2">Prompt</label>
+            <label className="block text-xs font-medium text-muted uppercase tracking-wider mb-2">Prompt</label>
             <textarea
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
-              placeholder="Describe what you want to create..."
+              placeholder="A red fox in a snowy pine forest, cinematic lighting…"
               rows={4}
-              className="w-full px-3 py-2.5 bg-gray-900 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-indigo-500 resize-none"
+              className={`${inputClass} resize-none`}
             />
           </div>
         )}
 
         {needsPrompt && !showNegative && (
-          <button onClick={() => setShowNegative(true)} className="text-sm text-gray-400 hover:text-gray-300">
-            + Negative prompt
+          <button
+            onClick={() => setShowNegative(true)}
+            className="text-sm text-muted hover:text-foreground transition-colors"
+          >
+            + Add negative prompt
           </button>
         )}
         {needsPrompt && showNegative && (
           <div>
-            <label className="block text-sm text-gray-300 mb-2">Negative Prompt</label>
+            <label className="block text-xs font-medium text-muted uppercase tracking-wider mb-2">Negative prompt</label>
             <textarea
               value={negativePrompt}
               onChange={(e) => setNegativePrompt(e.target.value)}
-              placeholder="What to exclude from the generation..."
+              placeholder="blurry, low quality, distorted…"
               rows={2}
-              className="w-full px-3 py-2.5 bg-gray-900 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-indigo-500 resize-none"
+              className={`${inputClass} resize-none`}
             />
           </div>
         )}
@@ -244,99 +254,95 @@ export function Generate() {
         {needsPrompt && (
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm text-gray-300 mb-2">Size</label>
-              <select
-                value={size}
-                onChange={(e) => setSize(e.target.value)}
-                className="w-full px-3 py-2.5 bg-gray-900 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-indigo-500"
-              >
-                <option value="1024x1024">Square — 1024×1024</option>
-                <option value="768x1024">Portrait — 768×1024</option>
-                <option value="1024x768">Landscape — 1024×768</option>
-                <option value="512x512">Small — 512×512</option>
-              </select>
+              <label className="block text-xs font-medium text-muted uppercase tracking-wider mb-2">Size</label>
+              <div className="relative">
+                <select
+                  value={size}
+                  onChange={(e) => setSize(e.target.value)}
+                  className={`${inputClass} appearance-none pr-10 cursor-pointer`}
+                >
+                  {SIZES.map((s) => (
+                    <option key={s.value} value={s.value}>{s.label}</option>
+                  ))}
+                </select>
+                <ChevronDown className="h-4 w-4 text-muted absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              </div>
             </div>
             <div>
-              <label className="block text-sm text-gray-300 mb-2">
-                Seed <span className="text-gray-500">(optional)</span>
-              </label>
+              <label className="block text-xs font-medium text-muted uppercase tracking-wider mb-2">Seed</label>
               <input
                 type="number"
                 value={seed}
                 onChange={(e) => setSeed(e.target.value)}
                 placeholder="Random"
-                className="w-full px-3 py-2.5 bg-gray-900 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-indigo-500"
+                className={inputClass}
               />
             </div>
           </div>
         )}
 
         {error && (
-          <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm">
+          <div className="flex items-start gap-2 p-3 bg-danger/10 border border-danger/20 rounded-xl text-danger text-sm">
+            <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
             {error}
           </div>
         )}
 
-        <button
+        <Button
           onClick={handleGenerate}
+          loading={isBusy}
+          leftIcon={!isBusy && <Sparkles className="h-4 w-4" />}
+          size="lg"
+          fullWidth
           disabled={isBusy || !currentModel || (needsPrompt && !prompt.trim())}
-          className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg text-white font-medium transition-colors"
         >
-          {isBusy ? (
-            <span className="flex items-center justify-center gap-2">
-              <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
-              {generation?.status === 'QUEUED' ? 'Queued…' : 'Generating…'}
-            </span>
-          ) : (
-            `Generate${currentModel ? ` — ${currentModel.creditCost} credits` : ''}`
-          )}
-        </button>
-      </div>
+          {isBusy
+            ? generation?.status === 'QUEUED'
+              ? 'Queued…'
+              : 'Generating…'
+            : `Generate${currentModel ? ` · ${currentModel.creditCost} credits` : ''}`}
+        </Button>
+      </Card>
 
+      {/* Result */}
       {generation?.status === 'COMPLETED' && generation.outputUrls[0] && (
-        <div className="mt-8">
-          <h2 className="text-lg font-semibold mb-4">Result</h2>
-          <div className="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden">
-            <img src={generation.outputUrls[0]} alt="Generated" className="w-full" />
-            <div className="p-4 flex flex-wrap gap-3">
-              <button
-                onClick={handleDownload}
-                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 rounded-lg text-sm font-medium transition-colors"
-              >
-                Download
-              </button>
-              <a
-                href={generation.outputUrls[0]}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-sm transition-colors"
-              >
-                Open full size
-              </a>
-              <button
-                onClick={handleRegenerate}
-                disabled={isBusy}
-                className="px-4 py-2 bg-gray-800 hover:bg-gray-700 disabled:opacity-50 rounded-lg text-sm transition-colors"
-              >
-                Regenerate
-              </button>
-              <button
-                onClick={handleUpscale}
-                disabled={isBusy}
-                title="Enhances resolution using a premium model (requires Replicate billing)"
-                className="px-4 py-2 bg-gray-800 hover:bg-gray-700 disabled:opacity-50 rounded-lg text-sm transition-colors"
-              >
-                Upscale ✦
-              </button>
-            </div>
+        <Card className="overflow-hidden animate-fade-in-up">
+          <img src={generation.outputUrls[0]} alt="Generated result" className="w-full" />
+          <div className="p-4 flex flex-wrap gap-2.5">
+            <Button onClick={handleDownload} leftIcon={<Download className="h-4 w-4" />}>
+              Download
+            </Button>
+            <a href={generation.outputUrls[0]} target="_blank" rel="noopener noreferrer">
+              <Button variant="secondary" leftIcon={<ExternalLink className="h-4 w-4" />}>
+                Open
+              </Button>
+            </a>
+            <Button variant="secondary" onClick={handleGenerate} disabled={isBusy} leftIcon={<RefreshCw className="h-4 w-4" />}>
+              Regenerate
+            </Button>
+            <Button
+              variant="secondary"
+              onClick={handleUpscale}
+              disabled={isBusy}
+              leftIcon={<Maximize2 className="h-4 w-4" />}
+              title="Premium model — requires Replicate billing"
+              className="ml-auto"
+            >
+              Upscale
+            </Button>
           </div>
-        </div>
+        </Card>
       )}
 
       {generation?.status === 'FAILED' && (
-        <div className="mt-8 p-4 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm">
-          Generation failed: {generation.errorMessage || 'Unknown error'}. Your credits were refunded.
-        </div>
+        <Card className="p-4 border-danger/30 animate-fade-in-up">
+          <div className="flex items-start gap-2 text-danger text-sm">
+            <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+            <span>
+              Generation failed: {generation.errorMessage || 'Unknown error'}. Your credits were refunded.
+            </span>
+          </div>
+        </Card>
       )}
     </div>
   );

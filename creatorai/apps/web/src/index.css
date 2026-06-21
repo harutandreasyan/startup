@@ -1,1 +1,109 @@
 @import "tailwindcss";
+
+/* Manual dark mode via .dark class on <html> */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Semantic tokens — utilities resolve to these CSS vars at use-site,
+   so toggling .dark restyles everything cleanly. */
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-border: var(--border);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-accent: var(--accent);
+  --color-danger: var(--danger);
+  --color-success: var(--success);
+
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --radius-xl2: 1.25rem;
+}
+
+/* Light theme (default) */
+:root {
+  --background: #f6f7fb;
+  --surface: #ffffff;
+  --surface-2: #f0f1f6;
+  --border: #e6e8ef;
+  --foreground: #14161f;
+  --muted: #6b7180;
+  --primary: #6d5efc;
+  --primary-hover: #5b4ce0;
+  --primary-foreground: #ffffff;
+  --accent: #a855f7;
+  --danger: #e5484d;
+  --success: #30a46c;
+
+  color-scheme: light;
+}
+
+/* Dark theme */
+.dark {
+  --background: #0a0b10;
+  --surface: #14161d;
+  --surface-2: #1c1f29;
+  --border: #272b36;
+  --foreground: #eceef3;
+  --muted: #9098a8;
+  --primary: #7c6dfc;
+  --primary-hover: #8e80ff;
+  --primary-foreground: #ffffff;
+  --accent: #c084fc;
+  --danger: #ff6369;
+  --success: #3dd68c;
+
+  color-scheme: dark;
+}
+
+* {
+  border-color: var(--border);
+}
+
+html {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  margin: 0;
+  /* Smooth theme transition */
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Custom thin scrollbar */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover { background: var(--muted); background-clip: padding-box; }
+
+/* Reusable animations */
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in-up { animation: fade-in-up 0.4s ease both; }
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.animate-fade-in { animation: fade-in 0.25s ease both; }
+
+/* Visible, on-brand focus rings everywhere */
+*:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: 4px;
+}

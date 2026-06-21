@@ -1,7 +1,11 @@
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { X, Download, ExternalLink, Trash2, Images as ImagesIcon, Loader2, Sparkles } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { listGenerations, deleteGeneration } from '@creatorai/api-client';
 import type { Generation } from '@creatorai/shared';
+import { Card } from '../components/common/Card';
+import { Button } from '../components/common/Button';
 
 export function Gallery() {
   const queryClient = useQueryClient();
@@ -12,7 +16,6 @@ export function Gallery() {
     queryKey: ['generations'],
     queryFn: () => listGenerations({ limit: 50 }),
   });
-
   const generations = data?.data ?? [];
 
   const handleDownload = async (url: string, id: string) => {
@@ -44,45 +47,62 @@ export function Gallery() {
   };
 
   return (
-    <div className="text-white">
-      <h1 className="text-2xl font-bold mb-6">Gallery</h1>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Gallery</h1>
+        <p className="text-muted mt-1">Everything you've created, in one place.</p>
+      </div>
 
       {isLoading && (
-        <div className="bg-gray-900 rounded-xl border border-gray-800 p-12 text-center text-gray-500">
-          Loading…
+        <div className="flex items-center justify-center py-20 text-muted">
+          <Loader2 className="h-6 w-6 animate-spin" />
         </div>
       )}
 
       {!isLoading && generations.length === 0 && (
-        <div className="bg-gray-900 rounded-xl border border-gray-800 p-12 text-center">
-          <p className="text-gray-500 mb-4">Your generations will appear here</p>
-          <a
-            href="/generate"
-            className="inline-block px-4 py-2 bg-indigo-600 hover:bg-indigo-700 rounded-lg text-sm transition-colors"
+        <Card className="p-10 sm:p-16 flex flex-col items-center text-center">
+          <div className="h-12 w-12 rounded-2xl bg-surface-2 flex items-center justify-center mb-3">
+            <ImagesIcon className="h-6 w-6 text-muted" />
+          </div>
+          <p className="text-muted text-sm">Your generations will appear here.</p>
+          <Link
+            to="/generate"
+            className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary-hover transition-colors"
           >
-            Create something
-          </a>
-        </div>
+            <Sparkles className="h-4 w-4" /> Create something
+          </Link>
+        </Card>
       )}
 
       {!isLoading && generations.length > 0 && (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
           {generations.map((g) => (
             <button
               key={g.id}
               onClick={() => g.status === 'COMPLETED' && g.thumbnailUrl && setSelected(g)}
-              className="aspect-square bg-gray-900 rounded-xl border border-gray-800 overflow-hidden relative group text-left"
+              className="group relative aspect-square rounded-2xl overflow-hidden border border-border bg-surface-2 text-left transition-all hover:border-primary/40"
             >
               {g.status === 'COMPLETED' && g.thumbnailUrl ? (
-                <img src={g.thumbnailUrl} alt={g.prompt || ''} className="w-full h-full object-cover" />
+                <img
+                  src={g.thumbnailUrl}
+                  alt={g.prompt || ''}
+                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                />
               ) : (
-                <div className="w-full h-full flex items-center justify-center text-xs text-gray-500">
-                  {g.status === 'FAILED' ? 'Failed' : 'Processing…'}
+                <div className="w-full h-full flex flex-col items-center justify-center gap-1 text-xs text-muted">
+                  {g.status === 'FAILED' ? (
+                    <span className="text-danger">Failed</span>
+                  ) : (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Processing
+                    </>
+                  )}
                 </div>
               )}
-              {g.prompt && (
-                <div className="absolute bottom-0 inset-x-0 p-2 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
-                  <p className="text-xs text-gray-200 line-clamp-2">{g.prompt}</p>
+              {g.prompt && g.status === 'COMPLETED' && (
+                <div className="absolute inset-x-0 bottom-0 p-2.5 bg-gradient-to-t from-black/75 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+                  <p className="text-[11px] text-white/90 line-clamp-2">{g.prompt}</p>
                 </div>
               )}
             </button>
@@ -93,20 +113,21 @@ export function Gallery() {
       {/* Detail modal */}
       {selected && (
         <div
-          className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50"
+          className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in"
           onClick={() => setSelected(null)}
         >
-          <div
-            className="bg-gray-900 rounded-xl border border-gray-800 max-w-3xl w-full max-h-[90vh] overflow-auto"
+          <Card
+            className="max-w-3xl w-full max-h-[90vh] overflow-auto p-0 animate-fade-in-up"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between p-4 border-b border-gray-800">
-              <h2 className="font-semibold">Generation</h2>
+            <div className="flex items-center justify-between p-4 border-b border-border sticky top-0 bg-surface/95 backdrop-blur z-10">
+              <h2 className="font-semibold">Creation</h2>
               <button
                 onClick={() => setSelected(null)}
-                className="text-gray-400 hover:text-white text-xl leading-none"
+                aria-label="Close"
+                className="h-8 w-8 inline-flex items-center justify-center rounded-lg text-muted hover:text-foreground hover:bg-surface-2 transition-colors"
               >
-                ✕
+                <X className="h-4 w-4" />
               </button>
             </div>
 
@@ -114,44 +135,37 @@ export function Gallery() {
               <img src={selected.outputUrls[0]} alt={selected.prompt || ''} className="w-full" />
             )}
 
-            <div className="p-4 space-y-3">
+            <div className="p-4 space-y-4">
               {selected.prompt && (
                 <div>
-                  <p className="text-xs text-gray-500 mb-1">Prompt</p>
-                  <p className="text-sm text-gray-200">{selected.prompt}</p>
+                  <p className="text-xs text-muted uppercase tracking-wider mb-1">Prompt</p>
+                  <p className="text-sm">{selected.prompt}</p>
                 </div>
               )}
-              <div className="flex gap-4 text-xs text-gray-500">
+              <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted">
                 <span>Model: {selected.model}</span>
                 <span>Cost: {selected.creditsCost} credits</span>
                 <span>{new Date(selected.createdAt).toLocaleString()}</span>
               </div>
-
-              <div className="flex gap-3 pt-2">
-                <button
-                  onClick={() => handleDownload(selected.outputUrls[0], selected.id)}
-                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 rounded-lg text-sm font-medium transition-colors"
-                >
+              <div className="flex flex-wrap gap-2.5 pt-1">
+                <Button onClick={() => handleDownload(selected.outputUrls[0], selected.id)} leftIcon={<Download className="h-4 w-4" />}>
                   Download
-                </button>
-                <a
-                  href={selected.outputUrls[0]}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-sm transition-colors"
-                >
-                  Open full size
+                </Button>
+                <a href={selected.outputUrls[0]} target="_blank" rel="noopener noreferrer">
+                  <Button variant="secondary" leftIcon={<ExternalLink className="h-4 w-4" />}>Open</Button>
                 </a>
-                <button
+                <Button
+                  variant="danger"
                   onClick={() => handleDelete(selected.id)}
-                  disabled={deleting}
-                  className="px-4 py-2 bg-red-600/20 text-red-400 hover:bg-red-600/30 disabled:opacity-50 rounded-lg text-sm transition-colors ml-auto"
+                  loading={deleting}
+                  leftIcon={!deleting && <Trash2 className="h-4 w-4" />}
+                  className="ml-auto"
                 >
-                  {deleting ? 'Deleting…' : 'Delete'}
-                </button>
+                  Delete
+                </Button>
               </div>
             </div>
-          </div>
+          </Card>
         </div>
       )}
     </div>

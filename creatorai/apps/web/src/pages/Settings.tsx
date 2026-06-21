@@ -1,14 +1,18 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { Check, LogOut, AlertCircle, Crown, ArrowUpRight } from 'lucide-react';
 import { updateProfile, deleteAccount, getSubscription, cancelSubscription, getMe } from '@creatorai/api-client';
 import { useAuth } from '../hooks/useAuth';
 import { useAuthStore } from '../stores/auth.store';
 import { apiErrorMessage } from '../lib/apiError';
+import { Card } from '../components/common/Card';
+import { Button } from '../components/common/Button';
 
 export function Settings() {
   const { user, signOut } = useAuth();
   const setUser = useAuthStore((s) => s.setUser);
+  const queryClient = useQueryClient();
 
   const [name, setName] = useState(user?.name ?? '');
   const [saving, setSaving] = useState(false);
@@ -18,10 +22,22 @@ export function Settings() {
   const [deleting, setDeleting] = useState(false);
   const [cancelling, setCancelling] = useState(false);
 
-  const queryClient = useQueryClient();
   const { data: subscription } = useQuery({ queryKey: ['subscription'], queryFn: getSubscription });
-
   const dirty = name.trim() !== (user?.name ?? '');
+
+  const handleSave = async () => {
+    setSaving(true);
+    setError('');
+    setSavedMsg('');
+    try {
+      setUser(await updateProfile({ name: name.trim() }));
+      setSavedMsg('Saved');
+    } catch (err) {
+      setError(apiErrorMessage(err, 'Could not save profile.'));
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const handleCancelSubscription = async () => {
     setCancelling(true);
@@ -29,26 +45,11 @@ export function Settings() {
     try {
       await cancelSubscription();
       await queryClient.invalidateQueries({ queryKey: ['subscription'] });
-      setUser(await getMe()); // refresh profile so the Plan field reflects FREE
+      setUser(await getMe());
     } catch (err) {
       setError(apiErrorMessage(err, 'Could not cancel subscription.'));
     } finally {
       setCancelling(false);
-    }
-  };
-
-  const handleSave = async () => {
-    setSaving(true);
-    setError('');
-    setSavedMsg('');
-    try {
-      const updated = await updateProfile({ name: name.trim() });
-      setUser(updated);
-      setSavedMsg('Saved');
-    } catch (err) {
-      setError(apiErrorMessage(err, 'Could not save profile.'));
-    } finally {
-      setSaving(false);
     }
   };
 
@@ -64,19 +65,37 @@ export function Settings() {
     }
   };
 
-  return (
-    <div className="text-white max-w-2xl">
-      <h1 className="text-2xl font-bold mb-6">Settings</h1>
+  const inputClass =
+    'w-full max-w-sm px-3.5 py-2.5 bg-surface-2 border border-border rounded-xl text-sm text-foreground placeholder:text-muted focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-shadow';
+  const fieldLabel = 'block text-xs font-medium text-muted uppercase tracking-wider mb-1.5';
 
-      <div className="bg-gray-900 rounded-xl border border-gray-800 p-6 mb-6">
-        <h2 className="font-semibold mb-4">Profile</h2>
-        <div className="space-y-4">
+  return (
+    <div className="max-w-2xl space-y-6">
+      <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Settings</h1>
+
+      {error && (
+        <div className="flex items-center gap-2 p-3 bg-danger/10 border border-danger/20 rounded-xl text-danger text-sm">
+          <AlertCircle className="h-4 w-4 shrink-0" />
+          {error}
+        </div>
+      )}
+
+      {/* Profile */}
+      <Card className="p-6">
+        <h2 className="font-semibold mb-5">Profile</h2>
+        <div className="space-y-5">
           <div>
-            <label className="block text-sm text-gray-400 mb-1">Email</label>
+            <label className={fieldLabel}>Email</label>
             <p className="text-sm">{user?.email}</p>
           </div>
+          {user?.username && (
+            <div>
+              <label className={fieldLabel}>Username</label>
+              <p className="text-sm">@{user.username}</p>
+            </div>
+          )}
           <div>
-            <label className="block text-sm text-gray-400 mb-1">Display name</label>
+            <label className={fieldLabel}>Display name</label>
             <input
               type="text"
               value={name}
@@ -85,105 +104,81 @@ export function Settings() {
                 setSavedMsg('');
               }}
               placeholder="Your name"
-              className="w-full max-w-sm px-3 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-indigo-500"
+              className={inputClass}
             />
           </div>
-          <div>
-            <label className="block text-sm text-gray-400 mb-1">Plan</label>
-            <p className="text-sm">{user?.plan || 'Free'}</p>
-          </div>
           <div className="flex items-center gap-3">
-            <button
-              onClick={handleSave}
-              disabled={!dirty || saving}
-              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg text-sm font-medium transition-colors"
-            >
-              {saving ? 'Saving…' : 'Save changes'}
-            </button>
-            {savedMsg && <span className="text-green-400 text-sm">{savedMsg}</span>}
+            <Button onClick={handleSave} loading={saving} disabled={!dirty || saving}>
+              Save changes
+            </Button>
+            {savedMsg && (
+              <span className="text-success text-sm flex items-center gap-1">
+                <Check className="h-4 w-4" /> {savedMsg}
+              </span>
+            )}
           </div>
         </div>
-      </div>
+      </Card>
 
-      <div className="bg-gray-900 rounded-xl border border-gray-800 p-6 mb-6">
-        <h2 className="font-semibold mb-4">Subscription</h2>
+      {/* Subscription */}
+      <Card className="p-6">
+        <h2 className="font-semibold mb-5 flex items-center gap-2">
+          <Crown className="h-4 w-4 text-primary" /> Subscription
+        </h2>
         {subscription ? (
           <div className="space-y-3">
-            <p className="text-sm">
-              <span className="text-gray-400">Plan: </span>
-              <span className="font-medium">{subscription.plan}</span>
-            </p>
-            <p className="text-sm">
-              <span className="text-gray-400">Renews: </span>
-              {new Date(subscription.currentPeriodEnd).toLocaleDateString()}
-            </p>
-            <button
-              onClick={handleCancelSubscription}
-              disabled={cancelling}
-              className="px-4 py-2 bg-gray-800 hover:bg-gray-700 disabled:opacity-50 rounded-lg text-sm transition-colors"
-            >
-              {cancelling ? 'Cancelling…' : 'Cancel subscription'}
-            </button>
+            <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm">
+              <span><span className="text-muted">Plan: </span><span className="font-medium">{subscription.plan}</span></span>
+              <span><span className="text-muted">Renews: </span>{new Date(subscription.currentPeriodEnd).toLocaleDateString()}</span>
+            </div>
+            <Button variant="secondary" onClick={handleCancelSubscription} loading={cancelling}>
+              Cancel subscription
+            </Button>
           </div>
         ) : (
-          <p className="text-sm text-gray-400">
+          <p className="text-sm text-muted">
             You're on the Free plan.{' '}
-            <Link to="/credits" className="text-indigo-400 hover:text-indigo-300">
-              Upgrade
-            </Link>{' '}
-            for more monthly credits.
+            <Link to="/credits" className="text-primary hover:text-primary-hover font-medium inline-flex items-center gap-0.5">
+              Upgrade <ArrowUpRight className="h-3.5 w-3.5" />
+            </Link>
           </p>
         )}
-      </div>
+      </Card>
 
-      <div className="bg-gray-900 rounded-xl border border-gray-800 p-6 mb-6">
-        <h2 className="font-semibold mb-4">Account</h2>
-        <button
-          onClick={signOut}
-          className="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-sm transition-colors"
-        >
-          Sign Out
-        </button>
-      </div>
+      {/* Account */}
+      <Card className="p-6">
+        <h2 className="font-semibold mb-5">Account</h2>
+        <Button variant="secondary" onClick={signOut} leftIcon={<LogOut className="h-4 w-4" />}>
+          Sign out
+        </Button>
+      </Card>
 
-      {error && (
-        <div className="mb-6 p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm">
-          {error}
-        </div>
-      )}
-
-      <div className="bg-gray-900 rounded-xl border border-red-900/30 p-6">
-        <h2 className="font-semibold mb-2 text-red-400">Danger Zone</h2>
-        <p className="text-sm text-gray-400 mb-4">
+      {/* Danger zone */}
+      <Card className="p-6 border-danger/30">
+        <h2 className="font-semibold mb-2 text-danger">Danger zone</h2>
+        <p className="text-sm text-muted mb-4">
           Permanently delete your account and all data. This cannot be undone.
         </p>
         {!confirmingDelete ? (
-          <button
-            onClick={() => setConfirmingDelete(true)}
-            className="px-4 py-2 bg-red-600/20 text-red-400 hover:bg-red-600/30 rounded-lg text-sm transition-colors"
-          >
-            Delete Account
-          </button>
+          <Button variant="danger" onClick={() => setConfirmingDelete(true)}>
+            Delete account
+          </Button>
         ) : (
-          <div className="flex items-center gap-3">
-            <span className="text-sm text-gray-300">Are you sure?</span>
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="text-sm">Are you sure?</span>
             <button
               onClick={handleDelete}
               disabled={deleting}
-              className="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:opacity-50 rounded-lg text-sm font-medium transition-colors"
+              className="px-4 py-2.5 rounded-xl bg-danger text-white text-sm font-medium hover:opacity-90 disabled:opacity-50 transition-opacity"
             >
               {deleting ? 'Deleting…' : 'Yes, delete everything'}
             </button>
-            <button
-              onClick={() => setConfirmingDelete(false)}
-              disabled={deleting}
-              className="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-sm transition-colors"
-            >
+            <Button variant="ghost" onClick={() => setConfirmingDelete(false)} disabled={deleting}>
               Cancel
-            </button>
+            </Button>
           </div>
         )}
-      </div>
+      </Card>
     </div>
   );
 }
