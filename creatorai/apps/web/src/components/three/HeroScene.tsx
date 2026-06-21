@@ -1,35 +1,27 @@
-import { Sparkles } from 'lucide-react';
+import { Image as ImageIcon, Clapperboard, Box, Presentation, Music, Sparkles } from 'lucide-react';
+import { Cube3D } from './Cube3D';
 
-const FACE = 84; // half of cube edge (168px)
+const faceIcon = (Icon: typeof ImageIcon, app = false) => (
+  <Icon className={app ? 'h-12 w-12 text-white' : 'h-10 w-10 text-white/90'} strokeWidth={app ? 2.2 : 1.9} />
+);
 
-const faces = [
-  `rotateY(0deg) translateZ(${FACE}px)`,
-  `rotateY(180deg) translateZ(${FACE}px)`,
-  `rotateY(90deg) translateZ(${FACE}px)`,
-  `rotateY(-90deg) translateZ(${FACE}px)`,
-  `rotateX(90deg) translateZ(${FACE}px)`,
-  `rotateX(-90deg) translateZ(${FACE}px)`,
-];
-
-/** Pure-CSS animated 3D cube with a glowing core. No dependencies. */
+/** Hero 3D cube — each face shows something users can create; app icon on top. */
 export function HeroScene() {
+  // order: front, back, right, left, top, bottom
+  const faces = [
+    faceIcon(ImageIcon), // front — images
+    faceIcon(Clapperboard), // back — video
+    faceIcon(Box), // right — 3D
+    faceIcon(Presentation), // left — presentations
+    faceIcon(Sparkles, true), // top — app icon
+    faceIcon(Music), // bottom — audio/songs
+  ];
+
   return (
-    <div className="scene-3d relative w-full h-full flex items-center justify-center">
-      {/* glowing aura behind */}
+    <div className="relative w-full h-full flex items-center justify-center">
       <div className="absolute h-56 w-56 rounded-full bg-gradient-to-br from-primary to-accent blur-3xl opacity-40 animate-float" />
-      {/* floating wrapper (float) → spinning cube (spin) */}
       <div className="animate-float">
-        <div className="cube3d">
-          {faces.map((t, i) => (
-            <div key={i} className="cube3d__face" style={{ transform: t }}>
-              {i === 0 && (
-                <div className="w-full h-full flex items-center justify-center">
-                  <Sparkles className="h-10 w-10 text-white/90" strokeWidth={2} />
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
+        <Cube3D size={172} faces={faces} spin={22} />
       </div>
     </div>
   );

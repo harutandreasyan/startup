@@ -26,7 +26,7 @@ export function ConfirmModal({
   onCancel,
 }: ConfirmModalProps) {
   return (
-    <Modal open={open} onClose={onCancel} title={title} showClose={false}>
+    <Modal open={open} onClose={onCancel} title={title} showClose>
       <div className="px-5 pt-3 pb-5">
         {description && <p className="text-sm text-muted leading-relaxed">{description}</p>}
         <div className="flex gap-3 mt-6">

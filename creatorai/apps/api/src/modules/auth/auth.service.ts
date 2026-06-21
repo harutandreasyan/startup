@@ -90,6 +90,31 @@ export class AuthService {
     return this.signIn(email, input.password);
   }
 
+  /** Changes the account email (keeps uniqueness), syncing Supabase + our DB. */
+  async changeEmail(userId: string, newEmailInput: string) {
+    const email = newEmailInput.trim().toLowerCase();
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+      throw new HttpException('Please enter a valid email address.', 400);
+    }
+
+    const existing = await this.prisma.user.findUnique({ where: { email } });
+    if (existing && existing.id !== userId) {
+      throw new HttpException('That email is already in use.', 409);
+    }
+    if (existing && existing.id === userId) {
+      return { email }; // no change
+    }
+
+    const { error } = await this.admin.auth.admin.updateUserById(userId, {
+      email,
+      email_confirm: true,
+    });
+    if (error) throw new HttpException(error.message || 'Could not update email.', 400);
+
+    await this.prisma.user.update({ where: { id: userId }, data: { email } });
+    return { email };
+  }
+
   /** Logs in with either an email or a username. */
   async login(loginInput: string, password: string): Promise<SessionTokens> {
     const login = loginInput.trim().toLowerCase();

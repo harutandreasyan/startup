@@ -1,18 +1,52 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { X, Download, ExternalLink, Trash2, Images as ImagesIcon, Loader2, Sparkles } from 'lucide-react';
+import {
+  MoreVertical,
+  Download,
+  ExternalLink,
+  Trash2,
+  Info,
+  X,
+  Images as ImagesIcon,
+  Loader2,
+  Sparkles,
+} from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { listGenerations, deleteGeneration } from '@creatorai/api-client';
 import type { Generation } from '@creatorai/shared';
 import { Card } from '../components/common/Card';
 import { Button } from '../components/common/Button';
 import { ConfirmModal } from '../components/common/ConfirmModal';
+import { Modal } from '../components/common/Modal';
+import { toast } from '../stores/toast.store';
+
+async function downloadImage(url: string, id: string) {
+  try {
+    const res = await fetch(url);
+    const blob = await res.blob();
+    const objectUrl = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = objectUrl;
+    a.download = `creatorai-${id}.png`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(objectUrl);
+    toast.success('Image downloaded');
+  } catch {
+    window.open(url, '_blank', 'noopener');
+    toast.info('Opened image in a new tab');
+  }
+}
 
 export function Gallery() {
   const queryClient = useQueryClient();
-  const [selected, setSelected] = useState<Generation | null>(null);
-  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [preview, setPreview] = useState<Generation | null>(null);
+  const [details, setDetails] = useState<Generation | null>(null);
+  const [confirmDeleteGen, setConfirmDeleteGen] = useState<Generation | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [menu, setMenu] = useState<{ gen: Generation; top: number; right: number } | null>(null);
 
   const { data, isLoading } = useQuery({
     queryKey: ['generations'],
@@ -20,35 +54,45 @@ export function Gallery() {
   });
   const generations = data?.data ?? [];
 
-  const handleDownload = async (url: string, id: string) => {
-    try {
-      const res = await fetch(url);
-      const blob = await res.blob();
-      const objectUrl = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = objectUrl;
-      a.download = `creatorai-${id}.png`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(objectUrl);
-    } catch {
-      window.open(url, '_blank', 'noopener');
-    }
+  useEffect(() => {
+    if (!menu) return;
+    const close = () => setMenu(null);
+    window.addEventListener('scroll', close, true);
+    window.addEventListener('resize', close);
+    return () => {
+      window.removeEventListener('scroll', close, true);
+      window.removeEventListener('resize', close);
+    };
+  }, [menu]);
+
+  const openMenu = (e: React.MouseEvent, gen: Generation) => {
+    e.stopPropagation();
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    setMenu({ gen, top: rect.bottom + 6, right: window.innerWidth - rect.right });
   };
 
   const handleDelete = async () => {
-    if (!selected) return;
+    if (!confirmDeleteGen) return;
     setDeleting(true);
     try {
-      await deleteGeneration(selected.id);
+      await deleteGeneration(confirmDeleteGen.id);
       await queryClient.invalidateQueries({ queryKey: ['generations'] });
-      setConfirmDelete(false);
-      setSelected(null);
+      if (preview?.id === confirmDeleteGen.id) setPreview(null);
+      setConfirmDeleteGen(null);
+      toast.success('Creation deleted');
+    } catch {
+      toast.error('Could not delete creation');
     } finally {
       setDeleting(false);
     }
   };
+
+  const menuItems = (gen: Generation) => [
+    { label: 'Open', icon: ImagesIcon, action: () => setPreview(gen) },
+    { label: 'Download', icon: Download, action: () => downloadImage(gen.outputUrls[0], gen.id) },
+    { label: 'Details', icon: Info, action: () => setDetails(gen) },
+    { label: 'Delete', icon: Trash2, action: () => setConfirmDeleteGen(gen), danger: true },
+  ];
 
   return (
     <div className="space-y-6">
@@ -71,116 +115,175 @@ export function Gallery() {
           <p className="text-muted text-sm">Your generations will appear here.</p>
           <Link
             to="/generate"
-            className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary-hover transition-colors"
+            className="mt-4 btn-glow inline-flex items-center gap-2 px-4 py-2 rounded-xl text-white text-sm font-medium"
           >
-            <Sparkles className="h-4 w-4" /> Create something
+            <span className="relative z-10 inline-flex items-center gap-2">
+              <Sparkles className="h-4 w-4" /> Create something
+            </span>
           </Link>
         </Card>
       )}
 
       {!isLoading && generations.length > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
-          {generations.map((g) => (
-            <button
-              key={g.id}
-              onClick={() => g.status === 'COMPLETED' && g.thumbnailUrl && setSelected(g)}
-              className="group relative aspect-square rounded-2xl overflow-hidden border border-border bg-surface-2 text-left transition-all hover:border-primary/40"
-            >
-              {g.status === 'COMPLETED' && g.thumbnailUrl ? (
-                <img
-                  src={g.thumbnailUrl}
-                  alt={g.prompt || ''}
-                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                />
-              ) : (
-                <div className="w-full h-full flex flex-col items-center justify-center gap-1 text-xs text-muted">
-                  {g.status === 'FAILED' ? (
-                    <span className="text-danger">Failed</span>
-                  ) : (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      Processing
-                    </>
-                  )}
-                </div>
-              )}
-              {g.prompt && g.status === 'COMPLETED' && (
-                <div className="absolute inset-x-0 bottom-0 p-2.5 bg-gradient-to-t from-black/75 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
-                  <p className="text-[11px] text-white/90 line-clamp-2">{g.prompt}</p>
-                </div>
-              )}
-            </button>
-          ))}
+          {generations.map((g) => {
+            const ready = g.status === 'COMPLETED' && !!g.thumbnailUrl;
+            return (
+              <div
+                key={g.id}
+                onClick={() => ready && setPreview(g)}
+                className="group relative aspect-square rounded-2xl overflow-hidden border border-border bg-surface-2 cursor-pointer transition-all hover:border-primary/40"
+              >
+                {ready ? (
+                  <img
+                    src={g.thumbnailUrl!}
+                    alt={g.prompt || ''}
+                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                  />
+                ) : (
+                  <div className="w-full h-full flex flex-col items-center justify-center gap-1 text-xs text-muted">
+                    {g.status === 'FAILED' ? (
+                      <span className="text-danger">Failed</span>
+                    ) : (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Processing
+                      </>
+                    )}
+                  </div>
+                )}
+
+                {ready && (
+                  <button
+                    onClick={(e) => openMenu(e, g)}
+                    aria-label="More options"
+                    className="absolute top-2 right-2 h-8 w-8 inline-flex items-center justify-center rounded-lg bg-black/45 backdrop-blur text-white opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity hover:bg-black/65"
+                  >
+                    <MoreVertical className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
 
-      {/* Detail modal */}
-      {selected && (
-        <div
-          className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in"
-          onClick={() => setSelected(null)}
-        >
-          <Card
-            className="max-w-3xl w-full max-h-[90vh] overflow-auto p-0 animate-fade-in-up"
-            onClick={(e) => e.stopPropagation()}
+      {/* Dropdown menu */}
+      {menu &&
+        createPortal(
+          <>
+            <div className="fixed inset-0 z-[90]" onClick={() => setMenu(null)} />
+            <div
+              className="fixed z-[91] w-44 rounded-xl p-1.5 bg-surface-solid border border-border shadow-2xl backdrop-blur-xl animate-scale-in"
+              style={{ top: menu.top, right: menu.right }}
+            >
+              {menuItems(menu.gen).map((item) => (
+                <button
+                  key={item.label}
+                  onClick={() => {
+                    item.action();
+                    setMenu(null);
+                  }}
+                  className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors ${
+                    item.danger ? 'text-danger hover:bg-danger/10' : 'text-foreground hover:bg-surface-2'
+                  }`}
+                >
+                  <item.icon className="h-4 w-4" />
+                  {item.label}
+                </button>
+              ))}
+            </div>
+          </>,
+          document.body,
+        )}
+
+      {/* Full-image preview — no scroll */}
+      {preview &&
+        createPortal(
+          <div
+            className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-md flex flex-col p-4 animate-fade-in"
+            onClick={() => setPreview(null)}
           >
-            <div className="flex items-center justify-between p-4 border-b border-border sticky top-0 bg-surface/95 backdrop-blur z-10">
-              <h2 className="font-semibold">Creation</h2>
+            <div className="flex justify-end shrink-0">
               <button
-                onClick={() => setSelected(null)}
+                onClick={() => setPreview(null)}
                 aria-label="Close"
-                className="h-8 w-8 inline-flex items-center justify-center rounded-lg text-muted hover:text-foreground hover:bg-surface-2 transition-colors"
+                className="h-10 w-10 inline-flex items-center justify-center rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition-colors"
               >
-                <X className="h-4 w-4" />
+                <X className="h-5 w-5" />
               </button>
             </div>
+            <div
+              className="flex-1 min-h-0 flex items-center justify-center"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <img
+                src={preview.outputUrls[0]}
+                alt={preview.prompt || ''}
+                className="max-h-full max-w-full object-contain rounded-2xl animate-scale-in"
+              />
+            </div>
+            <div className="shrink-0 flex flex-wrap items-center justify-center gap-2.5 pt-4" onClick={(e) => e.stopPropagation()}>
+              <Button onClick={() => downloadImage(preview.outputUrls[0], preview.id)} leftIcon={<Download className="h-4 w-4" />}>
+                Download
+              </Button>
+              <a href={preview.outputUrls[0]} target="_blank" rel="noopener noreferrer">
+                <Button variant="secondary" leftIcon={<ExternalLink className="h-4 w-4" />}>Open</Button>
+              </a>
+              <Button variant="secondary" onClick={() => setDetails(preview)} leftIcon={<Info className="h-4 w-4" />}>
+                Details
+              </Button>
+              <Button variant="danger" onClick={() => setConfirmDeleteGen(preview)} leftIcon={<Trash2 className="h-4 w-4" />}>
+                Delete
+              </Button>
+            </div>
+          </div>,
+          document.body,
+        )}
 
-            {selected.outputUrls[0] && (
-              <img src={selected.outputUrls[0]} alt={selected.prompt || ''} className="w-full" />
-            )}
-
-            <div className="p-4 space-y-4">
-              {selected.prompt && (
-                <div>
-                  <p className="text-xs text-muted uppercase tracking-wider mb-1">Prompt</p>
-                  <p className="text-sm">{selected.prompt}</p>
-                </div>
-              )}
-              <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted">
-                <span>Model: {selected.model}</span>
-                <span>Cost: {selected.creditsCost} credits</span>
-                <span>{new Date(selected.createdAt).toLocaleString()}</span>
+      {/* Details modal */}
+      <Modal open={!!details} onClose={() => setDetails(null)} title="Details">
+        {details && (
+          <div className="px-5 pb-5 pt-2 space-y-4">
+            {details.prompt && (
+              <div>
+                <p className="text-xs text-muted uppercase tracking-wider mb-1">Prompt</p>
+                <p className="text-sm">{details.prompt}</p>
               </div>
-              <div className="flex flex-wrap gap-2.5 pt-1">
-                <Button onClick={() => handleDownload(selected.outputUrls[0], selected.id)} leftIcon={<Download className="h-4 w-4" />}>
-                  Download
-                </Button>
-                <a href={selected.outputUrls[0]} target="_blank" rel="noopener noreferrer">
-                  <Button variant="secondary" leftIcon={<ExternalLink className="h-4 w-4" />}>Open</Button>
-                </a>
-                <Button
-                  variant="danger"
-                  onClick={() => setConfirmDelete(true)}
-                  leftIcon={<Trash2 className="h-4 w-4" />}
-                  className="ml-auto"
-                >
-                  Delete
-                </Button>
+            )}
+            {details.negativePrompt && (
+              <div>
+                <p className="text-xs text-muted uppercase tracking-wider mb-1">Negative prompt</p>
+                <p className="text-sm">{details.negativePrompt}</p>
+              </div>
+            )}
+            <div className="grid grid-cols-2 gap-3 text-sm">
+              <div>
+                <p className="text-xs text-muted uppercase tracking-wider mb-1">Model</p>
+                <p>{details.model}</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted uppercase tracking-wider mb-1">Cost</p>
+                <p>{details.creditsCost} credits</p>
+              </div>
+              <div className="col-span-2">
+                <p className="text-xs text-muted uppercase tracking-wider mb-1">Created</p>
+                <p>{new Date(details.createdAt).toLocaleString()}</p>
               </div>
             </div>
-          </Card>
-        </div>
-      )}
+          </div>
+        )}
+      </Modal>
 
       <ConfirmModal
-        open={confirmDelete}
+        open={!!confirmDeleteGen}
         title="Delete this creation?"
         description="This permanently removes the image from your gallery. This cannot be undone."
         confirmLabel="Delete"
         variant="danger"
         loading={deleting}
         onConfirm={handleDelete}
-        onCancel={() => setConfirmDelete(false)}
+        onCancel={() => setConfirmDeleteGen(null)}
       />
     </div>
   );

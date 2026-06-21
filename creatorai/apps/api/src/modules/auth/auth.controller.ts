@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Patch, Post, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '../../common/guards/auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { PrismaService } from '../prisma/prisma.service';
@@ -21,6 +21,12 @@ export class AuthController {
   @Post('login')
   async login(@Body() body: { login: string; password: string }) {
     return this.authService.login(body.login, body.password);
+  }
+
+  @Patch('email')
+  @UseGuards(AuthGuard)
+  async changeEmail(@CurrentUser() user: any, @Body() body: { email: string }) {
+    return this.authService.changeEmail(user.id, body.email);
   }
 
   @Delete('account')

@@ -9,23 +9,27 @@ import { Gallery } from './pages/Gallery';
 import { Credits } from './pages/Credits';
 import { Settings } from './pages/Settings';
 import { useAuth } from './hooks/useAuth';
+import { Toaster } from './components/common/Toaster';
 
 export function App() {
   useAuth();
 
   return (
-    <Routes>
-      <Route path="/" element={<Landing />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
+    <>
+      <Routes>
+        <Route path="/" element={<Landing />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
 
-      <Route element={<AppLayout />}>
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/generate" element={<Generate />} />
-        <Route path="/gallery" element={<Gallery />} />
-        <Route path="/credits" element={<Credits />} />
-        <Route path="/settings" element={<Settings />} />
-      </Route>
-    </Routes>
+        <Route element={<AppLayout />}>
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/generate" element={<Generate />} />
+          <Route path="/gallery" element={<Gallery />} />
+          <Route path="/credits" element={<Credits />} />
+          <Route path="/settings" element={<Settings />} />
+        </Route>
+      </Routes>
+      <Toaster />
+    </>
   );
 }

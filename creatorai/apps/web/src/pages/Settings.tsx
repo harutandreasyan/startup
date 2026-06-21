@@ -1,11 +1,12 @@
 import { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Check, LogOut, AlertCircle, Crown, ArrowUpRight, Camera, Loader2, Trash2 } from 'lucide-react';
-import { updateProfile, deleteAccount, getSubscription, cancelSubscription, getMe } from '@creatorai/api-client';
+import { LogOut, Crown, ArrowUpRight, Camera, Loader2, Trash2 } from 'lucide-react';
+import { updateProfile, deleteAccount, getSubscription, cancelSubscription, getMe, changeEmail } from '@creatorai/api-client';
 import { useAuth } from '../hooks/useAuth';
 import { useAuthStore } from '../stores/auth.store';
 import { apiErrorMessage } from '../lib/apiError';
+import { toast } from '../stores/toast.store';
 import { fileToAvatarDataUrl } from '../lib/image';
 import { Card } from '../components/common/Card';
 import { Button } from '../components/common/Button';
@@ -19,9 +20,9 @@ export function Settings() {
   const fileRef = useRef<HTMLInputElement>(null);
 
   const [name, setName] = useState(user?.name ?? '');
+  const [email, setEmail] = useState(user?.email ?? '');
   const [saving, setSaving] = useState(false);
-  const [savedMsg, setSavedMsg] = useState('');
-  const [error, setError] = useState('');
+  const [savingEmail, setSavingEmail] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [cancelling, setCancelling] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -33,18 +34,31 @@ export function Settings() {
 
   const { data: subscription } = useQuery({ queryKey: ['subscription'], queryFn: getSubscription });
   const dirty = name.trim() !== (user?.name ?? '');
+  const emailDirty = email.trim().toLowerCase() !== (user?.email ?? '').toLowerCase();
 
   const handleSave = async () => {
     setSaving(true);
-    setError('');
-    setSavedMsg('');
     try {
       setUser(await updateProfile({ name: name.trim() }));
-      setSavedMsg('Saved');
+      toast.success('Profile updated');
     } catch (err) {
-      setError(apiErrorMessage(err, 'Could not save profile.'));
+      toast.error(apiErrorMessage(err, 'Could not save profile.'));
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleChangeEmail = async () => {
+    setSavingEmail(true);
+    try {
+      await changeEmail(email.trim());
+      setUser(await getMe());
+      toast.success('Email updated');
+    } catch (err) {
+      toast.error(apiErrorMessage(err, 'Could not change email.'));
+      setEmail(user?.email ?? '');
+    } finally {
+      setSavingEmail(false);
     }
   };
 
@@ -52,25 +66,25 @@ export function Settings() {
     const file = e.target.files?.[0];
     e.target.value = '';
     if (!file) return;
-    setError('');
     setUploading(true);
     try {
       const dataUrl = await fileToAvatarDataUrl(file);
       setUser(await updateProfile({ avatarUrl: dataUrl }));
+      toast.success('Profile photo updated');
     } catch (err) {
-      setError(apiErrorMessage(err, 'Could not update photo.'));
+      toast.error(apiErrorMessage(err, 'Could not update photo.'));
     } finally {
       setUploading(false);
     }
   };
 
   const handleRemoveAvatar = async () => {
-    setError('');
     setUploading(true);
     try {
       setUser(await updateProfile({ avatarUrl: '' }));
+      toast.success('Profile photo removed');
     } catch (err) {
-      setError(apiErrorMessage(err, 'Could not remove photo.'));
+      toast.error(apiErrorMessage(err, 'Could not remove photo.'));
     } finally {
       setUploading(false);
     }
@@ -78,14 +92,14 @@ export function Settings() {
 
   const handleCancelSubscription = async () => {
     setCancelling(true);
-    setError('');
     try {
       await cancelSubscription();
       await queryClient.invalidateQueries({ queryKey: ['subscription'] });
       setUser(await getMe());
       setShowCancelSub(false);
+      toast.success('Subscription cancelled');
     } catch (err) {
-      setError(apiErrorMessage(err, 'Could not cancel subscription.'));
+      toast.error(apiErrorMessage(err, 'Could not cancel subscription.'));
     } finally {
       setCancelling(false);
     }
@@ -93,12 +107,11 @@ export function Settings() {
 
   const handleDelete = async () => {
     setDeleting(true);
-    setError('');
     try {
       await deleteAccount();
       await signOut();
     } catch (err) {
-      setError(apiErrorMessage(err, 'Could not delete account.'));
+      toast.error(apiErrorMessage(err, 'Could not delete account.'));
       setDeleting(false);
     }
   };
@@ -110,12 +123,6 @@ export function Settings() {
   return (
     <div className="max-w-2xl space-y-6 animate-fade-in-up">
       <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Settings</h1>
-
-      {error && (
-        <div className="flex items-center gap-2 p-3 bg-danger/10 border border-danger/20 rounded-xl text-danger text-sm">
-          <AlertCircle className="h-4 w-4 shrink-0" /> {error}
-        </div>
-      )}
 
       {/* Profile */}
       <Card glow className="p-6">
@@ -152,10 +159,6 @@ export function Settings() {
         </div>
 
         <div className="space-y-5">
-          <div>
-            <label className={fieldLabel}>Email</label>
-            <p className="text-sm">{user?.email}</p>
-          </div>
           {user?.username && (
             <div>
               <label className={fieldLabel}>Username</label>
@@ -164,26 +167,34 @@ export function Settings() {
           )}
           <div>
             <label className={fieldLabel}>Display name</label>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => {
-                setName(e.target.value);
-                setSavedMsg('');
-              }}
-              placeholder="Your name"
-              className={inputClass}
-            />
+            <div className="flex flex-wrap items-center gap-2">
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Your name"
+                className={inputClass}
+              />
+              <Button onClick={handleSave} loading={saving} disabled={!dirty || saving} size="sm">
+                Save
+              </Button>
+            </div>
           </div>
-          <div className="flex items-center gap-3">
-            <Button onClick={handleSave} loading={saving} disabled={!dirty || saving}>
-              Save changes
-            </Button>
-            {savedMsg && (
-              <span className="text-success text-sm flex items-center gap-1">
-                <Check className="h-4 w-4" /> {savedMsg}
-              </span>
-            )}
+          <div>
+            <label className={fieldLabel}>Email</label>
+            <div className="flex flex-wrap items-center gap-2">
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                autoCapitalize="none"
+                placeholder="you@example.com"
+                className={inputClass}
+              />
+              <Button onClick={handleChangeEmail} loading={savingEmail} disabled={!emailDirty || savingEmail} size="sm">
+                Update
+              </Button>
+            </div>
           </div>
         </div>
       </Card>

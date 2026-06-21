@@ -31,6 +31,11 @@ export async function updateProfile(input: { name?: string; avatarUrl?: string }
   return data;
 }
 
+export async function changeEmail(email: string): Promise<{ email: string }> {
+  const { data } = await api.patch('/auth/email', { email });
+  return data;
+}
+
 export async function getStats(): Promise<UserStats> {
   const { data } = await api.get('/users/me/stats');
   return data;

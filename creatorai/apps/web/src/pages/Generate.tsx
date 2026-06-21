@@ -17,6 +17,7 @@ import { useAuthStore } from '../stores/auth.store';
 import { useModels } from '../hooks/useModels';
 import { connectWebSocket, onProgress } from '../lib/websocket';
 import { apiErrorMessage, apiErrorStatus } from '../lib/apiError';
+import { toast } from '../stores/toast.store';
 import { Button } from '../components/common/Button';
 import { Card } from '../components/common/Card';
 
@@ -71,9 +72,11 @@ export function Generate() {
     }
   };
 
-  const onTerminal = () => {
+  const onTerminal = (status?: string) => {
     refreshBalance();
     queryClient.invalidateQueries({ queryKey: ['generations'] });
+    if (status === 'COMPLETED') toast.success('Your creation is ready');
+    else if (status === 'FAILED') toast.error('Generation failed — credits refunded');
   };
 
   useEffect(() => {
@@ -90,7 +93,7 @@ export function Generate() {
           errorMessage: p.error ?? prev.errorMessage,
         };
       });
-      if (becameTerminal) onTerminal();
+      if (becameTerminal) onTerminal(p.status);
     });
     return unsub;
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -106,7 +109,7 @@ export function Generate() {
         setGeneration(fresh);
         if (fresh.status === 'COMPLETED' || fresh.status === 'FAILED') {
           clearInterval(interval);
-          onTerminal();
+          onTerminal(fresh.status);
         }
       } catch {
         /* keep polling */
@@ -159,8 +162,10 @@ export function Generate() {
       a.click();
       a.remove();
       URL.revokeObjectURL(objectUrl);
+      toast.success('Image downloaded');
     } catch {
       window.open(url, '_blank', 'noopener');
+      toast.info('Opened image in a new tab');
     }
   };
 
