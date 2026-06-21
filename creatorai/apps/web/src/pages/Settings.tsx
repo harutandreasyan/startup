@@ -1,5 +1,7 @@
 import { useState } from 'react';
-import { updateProfile, deleteAccount } from '@creatorai/api-client';
+import { Link } from 'react-router-dom';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { updateProfile, deleteAccount, getSubscription, cancelSubscription, getMe } from '@creatorai/api-client';
 import { useAuth } from '../hooks/useAuth';
 import { useAuthStore } from '../stores/auth.store';
 import { apiErrorMessage } from '../lib/apiError';
@@ -14,8 +16,26 @@ export function Settings() {
   const [error, setError] = useState('');
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
+
+  const queryClient = useQueryClient();
+  const { data: subscription } = useQuery({ queryKey: ['subscription'], queryFn: getSubscription });
 
   const dirty = name.trim() !== (user?.name ?? '');
+
+  const handleCancelSubscription = async () => {
+    setCancelling(true);
+    setError('');
+    try {
+      await cancelSubscription();
+      await queryClient.invalidateQueries({ queryKey: ['subscription'] });
+      setUser(await getMe()); // refresh profile so the Plan field reflects FREE
+    } catch (err) {
+      setError(apiErrorMessage(err, 'Could not cancel subscription.'));
+    } finally {
+      setCancelling(false);
+    }
+  };
 
   const handleSave = async () => {
     setSaving(true);
@@ -83,6 +103,37 @@ export function Settings() {
             {savedMsg && <span className="text-green-400 text-sm">{savedMsg}</span>}
           </div>
         </div>
+      </div>
+
+      <div className="bg-gray-900 rounded-xl border border-gray-800 p-6 mb-6">
+        <h2 className="font-semibold mb-4">Subscription</h2>
+        {subscription ? (
+          <div className="space-y-3">
+            <p className="text-sm">
+              <span className="text-gray-400">Plan: </span>
+              <span className="font-medium">{subscription.plan}</span>
+            </p>
+            <p className="text-sm">
+              <span className="text-gray-400">Renews: </span>
+              {new Date(subscription.currentPeriodEnd).toLocaleDateString()}
+            </p>
+            <button
+              onClick={handleCancelSubscription}
+              disabled={cancelling}
+              className="px-4 py-2 bg-gray-800 hover:bg-gray-700 disabled:opacity-50 rounded-lg text-sm transition-colors"
+            >
+              {cancelling ? 'Cancelling…' : 'Cancel subscription'}
+            </button>
+          </div>
+        ) : (
+          <p className="text-sm text-gray-400">
+            You're on the Free plan.{' '}
+            <Link to="/credits" className="text-indigo-400 hover:text-indigo-300">
+              Upgrade
+            </Link>{' '}
+            for more monthly credits.
+          </p>
+        )}
       </div>
 
       <div className="bg-gray-900 rounded-xl border border-gray-800 p-6 mb-6">

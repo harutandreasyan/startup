@@ -94,12 +94,91 @@ export class PaymentsService {
       } else {
         await this.grantCreditsFromSession(session);
       }
+    } else if (event.type === 'invoice.paid') {
+      const invoice = event.data.object as Stripe.Invoice & {
+        billing_reason?: string;
+        subscription?: string;
+      };
+      // Only renewals — the first invoice is handled by checkout.session.completed
+      if (invoice.billing_reason === 'subscription_cycle' && invoice.subscription) {
+        await this.renewSubscription(String(invoice.subscription));
+      }
     } else if (event.type === 'customer.subscription.deleted') {
       const sub = event.data.object as Stripe.Subscription;
-      await this.cancelSubscription(sub.id);
+      await this.markSubscriptionCancelled(sub.id);
     }
 
     return { received: true };
+  }
+
+  /** Returns the user's active (non-expired) subscription, or null. */
+  async getActiveSubscription(userId: string) {
+    return this.prisma.subscription.findFirst({
+      where: { userId, status: 'ACTIVE', currentPeriodEnd: { gt: new Date() } },
+      orderBy: { currentPeriodEnd: 'desc' },
+    });
+  }
+
+  /** Cancels the user's active subscription at period end via Stripe. */
+  async cancelActiveSubscription(userId: string) {
+    const sub = await this.getActiveSubscription(userId);
+    if (!sub) throw new HttpException('No active subscription', 404);
+
+    if (sub.providerSubId) {
+      try {
+        await this.stripe.subscriptions.update(sub.providerSubId, { cancel_at_period_end: true });
+      } catch (err) {
+        this.logger.warn(`Stripe cancel failed for ${sub.providerSubId}: ${err}`);
+      }
+    }
+
+    await this.prisma.subscription.update({
+      where: { id: sub.id },
+      data: { status: 'CANCELLED', cancelledAt: new Date() },
+    });
+
+    return { cancelled: true, accessUntil: sub.currentPeriodEnd };
+  }
+
+  private async renewSubscription(providerSubId: string) {
+    const sub = await this.prisma.subscription.findUnique({ where: { providerSubId } });
+    if (!sub) return;
+
+    const periodEnd = new Date(sub.currentPeriodEnd);
+    periodEnd.setMonth(periodEnd.getMonth() + 1);
+
+    await this.prisma.$transaction(async (tx) => {
+      await tx.subscription.update({
+        where: { providerSubId },
+        data: { status: 'ACTIVE', currentPeriodStart: sub.currentPeriodEnd, currentPeriodEnd: periodEnd },
+      });
+      if (sub.monthlyCredits > 0) {
+        const user = await tx.user.update({
+          where: { id: sub.userId },
+          data: { creditBalance: { increment: sub.monthlyCredits } },
+        });
+        await tx.creditTransaction.create({
+          data: {
+            userId: sub.userId,
+            amount: sub.monthlyCredits,
+            type: 'SUBSCRIPTION',
+            description: `${sub.plan} subscription — monthly renewal`,
+            balanceAfter: user.creditBalance,
+          },
+        });
+      }
+    });
+    this.logger.log(`Renewed subscription ${providerSubId}`);
+  }
+
+  private async markSubscriptionCancelled(providerSubId: string) {
+    const sub = await this.prisma.subscription.findUnique({ where: { providerSubId } });
+    if (!sub) return;
+    await this.prisma.subscription.update({
+      where: { providerSubId },
+      data: { status: 'CANCELLED', cancelledAt: new Date() },
+    });
+    this.logger.log(`Cancelled subscription ${providerSubId}`);
   }
 
   private async activateSubscription(session: Stripe.Checkout.Session) {
@@ -158,16 +237,6 @@ export class PaymentsService {
     this.logger.log(`Activated ${plan} subscription for user ${userId}`);
     // NOTE: renewals (invoice.paid for subsequent periods) are a follow-up —
     // see docs/07. First period is granted here.
-  }
-
-  private async cancelSubscription(providerSubId: string) {
-    const sub = await this.prisma.subscription.findUnique({ where: { providerSubId } });
-    if (!sub) return;
-    await this.prisma.subscription.update({
-      where: { providerSubId },
-      data: { status: 'CANCELLED', cancelledAt: new Date() },
-    });
-    this.logger.log(`Cancelled subscription ${providerSubId}`);
   }
 
   private async grantCreditsFromSession(session: Stripe.Checkout.Session) {

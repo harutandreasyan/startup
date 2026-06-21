@@ -1,4 +1,4 @@
-import { Body, Controller, Headers, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Headers, Post, Req, UseGuards } from '@nestjs/common';
 import type { Request } from 'express';
 import { AuthGuard } from '../../common/guards/auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
@@ -18,6 +18,18 @@ export class PaymentsController {
   @UseGuards(AuthGuard)
   async subscribe(@CurrentUser() user: any, @Body() body: { plan: 'PRO' | 'BUSINESS' }) {
     return this.paymentsService.createSubscriptionCheckout(user.id, body.plan, user.email);
+  }
+
+  @Get('payments/subscription')
+  @UseGuards(AuthGuard)
+  async getSubscription(@CurrentUser() user: any) {
+    return this.paymentsService.getActiveSubscription(user.id);
+  }
+
+  @Delete('payments/subscription')
+  @UseGuards(AuthGuard)
+  async cancelSubscription(@CurrentUser() user: any) {
+    return this.paymentsService.cancelActiveSubscription(user.id);
   }
 
   @Post('payments/stripe/webhook')
