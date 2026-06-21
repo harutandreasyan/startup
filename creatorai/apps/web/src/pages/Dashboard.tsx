@@ -1,8 +1,15 @@
 import { Link } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { listGenerations } from '@creatorai/api-client';
 import { useAuthStore } from '../stores/auth.store';
 
 export function Dashboard() {
   const user = useAuthStore((s) => s.user);
+  const { data } = useQuery({
+    queryKey: ['generations'],
+    queryFn: () => listGenerations({ limit: 8 }),
+  });
+  const recent = (data?.data ?? []).filter((g) => g.status === 'COMPLETED' && g.thumbnailUrl);
 
   return (
     <div className="text-white">
@@ -41,9 +48,23 @@ export function Dashboard() {
             View all
           </Link>
         </div>
-        <div className="bg-gray-900 rounded-xl border border-gray-800 p-12 text-center">
-          <p className="text-gray-500">No generations yet. Create your first one!</p>
-        </div>
+        {recent.length === 0 ? (
+          <div className="bg-gray-900 rounded-xl border border-gray-800 p-12 text-center">
+            <p className="text-gray-500">No generations yet. Create your first one!</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {recent.map((g) => (
+              <Link
+                key={g.id}
+                to="/gallery"
+                className="aspect-square bg-gray-900 rounded-xl border border-gray-800 overflow-hidden hover:border-indigo-500/50 transition-colors"
+              >
+                <img src={g.thumbnailUrl!} alt={g.prompt || ''} className="w-full h-full object-cover" />
+              </Link>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

@@ -10,3 +10,4 @@ coverage/
 .expo/
 ios/
 android/
+.test-account

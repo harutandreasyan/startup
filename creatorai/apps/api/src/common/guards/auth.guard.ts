@@ -47,6 +47,10 @@ export class AuthGuard implements CanActivate {
       });
     }
 
+    if (user.status !== 'ACTIVE') {
+      throw new UnauthorizedException('Account is not active');
+    }
+
     request.user = user;
     return true;
   }

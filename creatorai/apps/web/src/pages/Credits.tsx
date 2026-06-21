@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { getCreditPacks, purchaseCredits, getCreditHistory } from '@creatorai/api-client';
 import { useAuthStore } from '../stores/auth.store';
+import { apiErrorMessage } from '../lib/apiError';
 
 export function Credits() {
   const user = useAuthStore((s) => s.user);
@@ -22,9 +23,9 @@ export function Credits() {
     setBuying(packId);
     try {
       const { url } = await purchaseCredits(packId);
-      window.location.href = url; // redirect to Stripe Checkout
-    } catch (err: any) {
-      setError(err?.response?.data?.message || 'Could not start checkout. Is Stripe configured?');
+      window.location.assign(url); // redirect to Stripe Checkout
+    } catch (err) {
+      setError(apiErrorMessage(err, 'Could not start checkout. Is Stripe configured?'));
       setBuying(null);
     }
   };

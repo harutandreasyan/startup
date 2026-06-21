@@ -6,6 +6,7 @@ import type { Generation, GenerationType } from '@creatorai/shared';
 import { useAuthStore } from '../stores/auth.store';
 import { useModels } from '../hooks/useModels';
 import { connectWebSocket, onProgress } from '../lib/websocket';
+import { apiErrorMessage, apiErrorStatus } from '../lib/apiError';
 
 const TYPE_LABELS: Record<string, string> = {
   TEXT_TO_IMAGE: 'Text to Image',
@@ -30,20 +31,21 @@ export function Generate() {
   const [negativePrompt, setNegativePrompt] = useState('');
   const [selectedModel, setSelectedModel] = useState('');
   const [showNegative, setShowNegative] = useState(false);
+  const [size, setSize] = useState('1024x1024');
+  const [seed, setSeed] = useState('');
   const [generation, setGeneration] = useState<Generation | null>(null);
   const [error, setError] = useState('');
 
   const setUser = useAuthStore((s) => s.setUser);
 
   const needsPrompt = !PROMPTLESS_TYPES.has(type);
+  // The select falls back to the first model when nothing is chosen yet, so we
+  // never need to write default state into an effect.
+  const effectiveModelSlug = selectedModel || models?.[0]?.slug || '';
   const currentModel = useMemo(
-    () => models?.find((m) => m.slug === selectedModel) || models?.[0],
-    [models, selectedModel],
+    () => models?.find((m) => m.slug === effectiveModelSlug) || models?.[0],
+    [models, effectiveModelSlug],
   );
-
-  useEffect(() => {
-    if (models?.length && !selectedModel) setSelectedModel(models[0].slug);
-  }, [models, selectedModel]);
 
   // Refetch the user profile so the credit balance shown in the UI stays current
   const refreshBalance = async () => {
@@ -111,18 +113,26 @@ export function Generate() {
     setError('');
 
     try {
+      const [width, height] = size.split('x').map(Number);
+      const params: Record<string, unknown> = {};
+      if (needsPrompt) {
+        params.width = width;
+        params.height = height;
+        if (seed.trim()) params.seed = Number(seed);
+      }
+
       const result = await createGeneration({
         type,
         model: currentModel.slug,
         prompt: needsPrompt ? prompt : undefined,
         negativePrompt: negativePrompt || undefined,
+        params,
       });
       setGeneration(result);
       refreshBalance(); // credits are debited on submit
-    } catch (err: any) {
-      const status = err?.response?.status;
-      if (status === 402) setError('Not enough credits. Top up to keep creating.');
-      else setError(err?.response?.data?.message || 'Generation failed to start.');
+    } catch (err) {
+      if (apiErrorStatus(err) === 402) setError('Not enough credits. Top up to keep creating.');
+      else setError(apiErrorMessage(err, 'Generation failed to start.'));
     }
   };
 
@@ -165,11 +175,11 @@ export function Generate() {
       });
       setGeneration(result);
       refreshBalance();
-    } catch (err: any) {
-      if (err?.response?.status === 402) {
+    } catch (err) {
+      if (apiErrorStatus(err) === 402) {
         setError('Not enough credits to upscale.');
       } else {
-        setError(err?.response?.data?.message || 'Upscale failed to start.');
+        setError(apiErrorMessage(err, 'Upscale failed to start.'));
       }
     }
   };
@@ -185,7 +195,7 @@ export function Generate() {
         <div>
           <label className="block text-sm text-gray-300 mb-2">Model</label>
           <select
-            value={selectedModel}
+            value={effectiveModelSlug}
             onChange={(e) => setSelectedModel(e.target.value)}
             disabled={modelsLoading || !models?.length}
             className="w-full px-3 py-2.5 bg-gray-900 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-indigo-500"
@@ -228,6 +238,36 @@ export function Generate() {
               rows={2}
               className="w-full px-3 py-2.5 bg-gray-900 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-indigo-500 resize-none"
             />
+          </div>
+        )}
+
+        {needsPrompt && (
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm text-gray-300 mb-2">Size</label>
+              <select
+                value={size}
+                onChange={(e) => setSize(e.target.value)}
+                className="w-full px-3 py-2.5 bg-gray-900 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-indigo-500"
+              >
+                <option value="1024x1024">Square — 1024×1024</option>
+                <option value="768x1024">Portrait — 768×1024</option>
+                <option value="1024x768">Landscape — 1024×768</option>
+                <option value="512x512">Small — 512×512</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm text-gray-300 mb-2">
+                Seed <span className="text-gray-500">(optional)</span>
+              </label>
+              <input
+                type="number"
+                value={seed}
+                onChange={(e) => setSeed(e.target.value)}
+                placeholder="Random"
+                className="w-full px-3 py-2.5 bg-gray-900 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-indigo-500"
+              />
+            </div>
           </div>
         )}
 
