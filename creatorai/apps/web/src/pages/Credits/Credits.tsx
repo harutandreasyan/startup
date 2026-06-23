@@ -12,7 +12,7 @@ import { useStyles } from '../../lib/useStyles';
 import { creditsStyles } from './styles';
 
 export default function Credits() {
-  const s = useStyles(creditsStyles);
+  const styles = useStyles(creditsStyles);
   const user = useAuthStore((s) => s.user);
   const [searchParams] = useSearchParams();
   const status = searchParams.get('status');
@@ -49,16 +49,16 @@ export default function Credits() {
   };
 
   return (
-    <div className={s.root}>
-      <div className={s.header}>
+    <div className={styles.root}>
+      <div className={styles.header}>
         <div>
-          <h1 className={s.title}>Credits & Plans</h1>
-          <p className={s.subtitle}>Power your creativity.</p>
+          <h1 className={styles.title}>Credits & Plans</h1>
+          <p className={styles.subtitle}>Power your creativity.</p>
         </div>
-        <span className={s.balancePill}>
-          <Gem className={s.balanceGem} />
-          <span className={s.balanceValue}>{user?.creditBalance ?? 0}</span>
-          <span className={s.balanceLabel}>credits</span>
+        <span className={styles.balancePill}>
+          <Gem className={styles.balanceGem} />
+          <span className={styles.balanceValue}>{user?.creditBalance ?? 0}</span>
+          <span className={styles.balanceLabel}>credits</span>
         </span>
       </div>
 
@@ -69,8 +69,8 @@ export default function Credits() {
 
       {/* Plans */}
       <section>
-        <h2 className={s.sectionHeading}>Subscription plans</h2>
-        <div className={s.planGrid}>
+        <h2 className={styles.sectionHeading}>Subscription plans</h2>
+        <div className={styles.planGrid}>
           {(['FREE', 'PRO', 'BUSINESS'] as const).map((planKey) => {
             const plan = PLANS[planKey];
             const isCurrent = currentPlan === planKey;
@@ -79,35 +79,35 @@ export default function Credits() {
             return (
               <Card
                 key={planKey}
-                className={s.planCard(isCurrent, featured)}
+                className={styles.planCard(isCurrent, featured)}
               >
                 {featured && (
-                  <span className={s.popularBadge}>
+                  <span className={styles.popularBadge}>
                     Popular
                   </span>
                 )}
-                <div className={s.planHead}>
-                  <h3 className={s.planName}>{plan.name}</h3>
+                <div className={styles.planHead}>
+                  <h3 className={styles.planName}>{plan.name}</h3>
                   {isCurrent && (
-                    <span className={s.currentBadge}>Current</span>
+                    <span className={styles.currentBadge}>Current</span>
                   )}
                 </div>
-                <p className={s.planPrice}>
+                <p className={styles.planPrice}>
                   ${(plan.priceUsd / 100).toFixed(0)}
-                  <span className={s.planPriceUnit}>/mo</span>
+                  <span className={styles.planPriceUnit}>/mo</span>
                 </p>
-                <p className={s.planCredits}>{plan.monthlyCredits} credits / month</p>
-                <ul className={s.planFeatures}>
+                <p className={styles.planCredits}>{plan.monthlyCredits} credits / month</p>
+                <ul className={styles.planFeatures}>
                   {plan.features.map((f) => (
-                    <li key={f} className={s.planFeature}>
-                      <Check className={s.planFeatureIcon} />
+                    <li key={f} className={styles.planFeature}>
+                      <Check className={styles.planFeatureIcon} />
                       {f}
                     </li>
                   ))}
                 </ul>
                 {isPaid && !isCurrent && (
                   <Button
-                    className={s.subscribeBtn}
+                    className={styles.subscribeBtn}
                     fullWidth
                     onClick={() => handleSubscribe(planKey as 'PRO' | 'BUSINESS')}
                     loading={subscribing === planKey}
@@ -117,7 +117,7 @@ export default function Credits() {
                   </Button>
                 )}
                 {isCurrent && isPaid && (
-                  <p className={s.currentPlanNote}>You're on this plan</p>
+                  <p className={styles.currentPlanNote}>You're on this plan</p>
                 )}
               </Card>
             );
@@ -127,23 +127,23 @@ export default function Credits() {
 
       {/* Packs */}
       <section>
-        <h2 className={s.sectionHeading}>One-time credit packs</h2>
-        <div className={s.packGrid}>
+        <h2 className={styles.sectionHeading}>One-time credit packs</h2>
+        <div className={styles.packGrid}>
           {packs?.map((pack) => (
-            <Card key={pack.id} hover className={s.packCard}>
-              <div className={s.packIconWrap}>
-                <Gem className={s.packIcon} />
+            <Card key={pack.id} hover className={styles.packCard}>
+              <div className={styles.packIconWrap}>
+                <Gem className={styles.packIcon} />
               </div>
-              <h3 className={s.packName}>{pack.name}</h3>
-              <p className={s.packCredits}>
+              <h3 className={styles.packName}>{pack.name}</h3>
+              <p className={styles.packCredits}>
                 {pack.credits}
-                <span className={s.packCreditsUnit}> credits</span>
+                <span className={styles.packCreditsUnit}> credits</span>
               </p>
-              <p className={s.packPrice}>${(pack.priceUsd / 100).toFixed(2)}</p>
+              <p className={styles.packPrice}>${(pack.priceUsd / 100).toFixed(2)}</p>
               <Button
                 variant="secondary"
                 fullWidth
-                className={s.buyBtn}
+                className={styles.buyBtn}
                 onClick={() => handlePurchase(pack.id)}
                 loading={buying === pack.id}
                 disabled={buying !== null}
@@ -157,22 +157,22 @@ export default function Credits() {
 
       {/* History */}
       <section>
-        <h2 className={s.sectionHeading}>Transaction history</h2>
-        <Card className={s.historyCard}>
+        <h2 className={styles.sectionHeading}>Transaction history</h2>
+        <Card className={styles.historyCard}>
           {!history?.data.length ? (
-            <div className={s.historyEmpty}>
-              <Sparkles className={s.historyEmptyIcon} />
+            <div className={styles.historyEmpty}>
+              <Sparkles className={styles.historyEmptyIcon} />
               No transactions yet
             </div>
           ) : (
-            <ul className={s.historyList}>
+            <ul className={styles.historyList}>
               {history.data.map((tx) => (
-                <li key={tx.id} className={s.historyRow}>
-                  <div className={s.historyInfo}>
-                    <p className={s.historyDesc}>{tx.description}</p>
-                    <p className={s.historyDate}>{new Date(tx.createdAt).toLocaleDateString()}</p>
+                <li key={tx.id} className={styles.historyRow}>
+                  <div className={styles.historyInfo}>
+                    <p className={styles.historyDesc}>{tx.description}</p>
+                    <p className={styles.historyDate}>{new Date(tx.createdAt).toLocaleDateString()}</p>
                   </div>
-                  <span className={s.historyAmount(tx.amount >= 0)}>
+                  <span className={styles.historyAmount(tx.amount >= 0)}>
                     {tx.amount >= 0 ? '+' : ''}
                     {tx.amount}
                   </span>
@@ -195,10 +195,10 @@ function Banner({
   tone: 'success' | 'danger' | 'muted';
   children: React.ReactNode;
 }) {
-  const s = useStyles(creditsStyles);
+  const styles = useStyles(creditsStyles);
   return (
-    <div className={s.banner(s.bannerTones[tone])}>
-      <Icon className={s.bannerIcon} />
+    <div className={styles.banner(styles.bannerTones[tone])}>
+      <Icon className={styles.bannerIcon} />
       {children}
     </div>
   );

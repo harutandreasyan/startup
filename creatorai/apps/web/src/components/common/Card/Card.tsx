@@ -9,10 +9,10 @@ interface CardProps extends HTMLAttributes<HTMLDivElement> {
 
 /** Glassmorphic surface. `glow` adds a gradient border that lights on hover. */
 export default function Card({ hover = false, glow = false, className = '', children, ...props }: CardProps) {
-  const s = useStyles(() => makeCardStyles(hover, glow, className), [hover, glow, className]);
+  const styles = useStyles(() => makeCardStyles(hover, glow, className), [hover, glow, className]);
   return (
     <div
-      className={s.card}
+      className={styles.card}
       {...props}
     >
       {children}

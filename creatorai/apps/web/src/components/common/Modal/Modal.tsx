@@ -15,7 +15,7 @@ interface ModalProps {
 }
 
 export default function Modal({ open, onClose, title, children, className = '', showClose = true }: ModalProps) {
-  const s = useStyles(() => makeModalStyles(className), [className]);
+  const styles = useStyles(() => makeModalStyles(className), [className]);
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
@@ -31,7 +31,7 @@ export default function Modal({ open, onClose, title, children, className = '', 
     <AnimatePresence>
       {open && (
         <motion.div
-          className={s.overlay}
+          className={styles.overlay}
           onClick={onClose}
           role="dialog"
           aria-modal="true"
@@ -41,7 +41,7 @@ export default function Modal({ open, onClose, title, children, className = '', 
           transition={{ duration: 0.2 }}
         >
           <motion.div
-            className={s.panel}
+            className={styles.panel}
             onClick={(e) => e.stopPropagation()}
             initial={{ opacity: 0, scale: 0.94, y: 12 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -49,15 +49,15 @@ export default function Modal({ open, onClose, title, children, className = '', 
             transition={{ type: 'spring', stiffness: 320, damping: 26 }}
           >
             {(title || showClose) && (
-              <div className={s.header}>
-                {title && <h2 className={s.title}>{title}</h2>}
+              <div className={styles.header}>
+                {title && <h2 className={styles.title}>{title}</h2>}
                 {showClose && (
                   <button
                     onClick={onClose}
                     aria-label="Close"
-                    className={s.closeBtn}
+                    className={styles.closeBtn}
                   >
-                    <X className={s.closeIcon} />
+                    <X className={styles.closeIcon} />
                   </button>
                 )}
               </div>

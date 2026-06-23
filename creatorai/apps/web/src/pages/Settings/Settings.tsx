@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { LogOut, Crown, ArrowUpRight, Camera, Trash2 } from 'lucide-react';
+import { LogOut, Crown, ArrowUpRight, Camera, Trash2, AlertCircle } from 'lucide-react';
 import { updateProfile, deleteAccount, getSubscription, cancelSubscription, getMe, changeEmail } from '@creatorai/api-client';
 import { useAuth } from '../../hooks/useAuth';
 import { useAuthStore } from '../../stores/auth.store';
@@ -17,7 +17,7 @@ import { useStyles } from '../../lib/useStyles';
 import { settingsStyles } from './styles';
 
 export default function Settings() {
-  const s = useStyles(settingsStyles);
+  const styles = useStyles(settingsStyles);
   const { user, signOut } = useAuth();
   const setUser = useAuthStore((s) => s.setUser);
   const queryClient = useQueryClient();
@@ -40,10 +40,12 @@ export default function Settings() {
   const [showCancelSub, setShowCancelSub] = useState(false);
 
   const { data: subscription } = useQuery({ queryKey: ['subscription'], queryFn: getSubscription });
+  const nameEmpty = name.trim() === '';
   const dirty = name.trim() !== (user?.name ?? '');
   const emailDirty = email.trim().toLowerCase() !== (user?.email ?? '').toLowerCase();
 
   const handleSave = async () => {
+    if (nameEmpty) return;
     setSaving(true);
     try {
       setUser(await updateProfile({ name: name.trim() }));
@@ -128,29 +130,29 @@ export default function Settings() {
   };
 
   return (
-    <div className={s.page}>
-      <h1 className={s.title}>Settings</h1>
+    <div className={styles.page}>
+      <h1 className={styles.title}>Settings</h1>
 
       {/* Profile */}
-      <Card glow className={s.card}>
-        <h2 className={s.cardHeading}>Profile</h2>
+      <Card glow className={styles.card}>
+        <h2 className={styles.cardHeading}>Profile</h2>
 
         {/* Avatar */}
-        <div className={s.avatarRow}>
-          <div className={s.avatarWrap}>
+        <div className={styles.avatarRow}>
+          <div className={styles.avatarWrap}>
             <Avatar name={user?.name} username={user?.username} email={user?.email} src={user?.avatarUrl} size={72} />
             <button
               onClick={() => fileRef.current?.click()}
               aria-label="Change photo"
-              className={s.avatarBtn}
+              className={styles.avatarBtn}
             >
-              <Camera className={s.cameraIcon} />
+              <Camera className={styles.cameraIcon} />
             </button>
           </div>
           <div>
-            <p className={s.avatarTitle}>Profile photo</p>
-            <p className={s.avatarHint}>JPG or PNG, square looks best.</p>
-            <div className={s.avatarBtnRow}>
+            <p className={styles.avatarTitle}>Profile photo</p>
+            <p className={styles.avatarHint}>JPG or PNG, square looks best.</p>
+            <div className={styles.avatarBtnRow}>
               <Button size="sm" variant="secondary" onClick={() => fileRef.current?.click()}>
                 Upload
               </Button>
@@ -160,42 +162,48 @@ export default function Settings() {
                 </Button>
               )}
             </div>
-            <input ref={fileRef} type="file" accept="image/*" onChange={handleFilePick} className={s.hiddenInput} />
+            <input ref={fileRef} type="file" accept="image/*" onChange={handleFilePick} className={styles.hiddenInput} />
           </div>
         </div>
 
-        <div className={s.fields}>
+        <div className={styles.fields}>
           {user?.username && (
             <div>
-              <label className={s.fieldLabel}>Username</label>
-              <p className={s.usernameValue}>@{user.username}</p>
+              <label className={styles.fieldLabel}>Username</label>
+              <p className={styles.usernameValue}>@{user.username}</p>
             </div>
           )}
           <div>
-            <label className={s.fieldLabel}>Display name</label>
-            <div className={s.fieldRow}>
+            <label className={styles.fieldLabel}>Display name</label>
+            <div className={styles.fieldRow}>
               <input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Your name"
-                className={s.inputClass}
+                aria-invalid={nameEmpty || undefined}
+                className={styles.inputClass(nameEmpty)}
               />
-              <Button onClick={handleSave} loading={saving} disabled={!dirty || saving} size="sm">
+              <Button onClick={handleSave} loading={saving} disabled={!dirty || saving || nameEmpty} size="sm">
                 Save
               </Button>
             </div>
+            {nameEmpty && (
+              <p className={styles.fieldError}>
+                <AlertCircle className={styles.fieldErrorIcon} /> Name is required.
+              </p>
+            )}
           </div>
           <div>
-            <label className={s.fieldLabel}>Email</label>
-            <div className={s.fieldRow}>
+            <label className={styles.fieldLabel}>Email</label>
+            <div className={styles.fieldRow}>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 autoCapitalize="none"
                 placeholder="you@example.com"
-                className={s.inputClass}
+                className={styles.inputClass()}
               />
               <Button onClick={handleChangeEmail} loading={savingEmail} disabled={!emailDirty || savingEmail} size="sm">
                 Update
@@ -206,49 +214,49 @@ export default function Settings() {
       </Card>
 
       {/* Subscription */}
-      <Card glow className={s.card}>
-        <h2 className={s.subHeading}>
-          <Crown className={s.crownIcon} /> Subscription
+      <Card glow className={styles.card}>
+        <h2 className={styles.subHeading}>
+          <Crown className={styles.crownIcon} /> Subscription
         </h2>
         {subscription ? (
-          <div className={s.subContent}>
-            <div className={s.subRow}>
-              <span><span className={s.subMuted}>Plan: </span><span className={s.subPlan}>{subscription.plan}</span></span>
-              <span><span className={s.subMuted}>Renews: </span>{new Date(subscription.currentPeriodEnd).toLocaleDateString()}</span>
+          <div className={styles.subContent}>
+            <div className={styles.subRow}>
+              <span><span className={styles.subMuted}>Plan: </span><span className={styles.subPlan}>{subscription.plan}</span></span>
+              <span><span className={styles.subMuted}>Renews: </span>{new Date(subscription.currentPeriodEnd).toLocaleDateString()}</span>
             </div>
             <Button variant="secondary" onClick={() => setShowCancelSub(true)}>
               Cancel subscription
             </Button>
           </div>
         ) : (
-          <p className={s.freeText}>
+          <p className={styles.freeText}>
             You're on the Free plan.{' '}
-            <Link to="/credits" className={s.upgradeLink}>
-              Upgrade <ArrowUpRight className={s.upgradeIcon} />
+            <Link to="/credits" className={styles.upgradeLink}>
+              Upgrade <ArrowUpRight className={styles.upgradeIcon} />
             </Link>
           </p>
         )}
       </Card>
 
       {/* Account */}
-      <Card glow className={s.card}>
-        <h2 className={s.accountHeading}>Account</h2>
-        <Button variant="secondary" onClick={() => setShowSignOut(true)} leftIcon={<LogOut className={s.signOutIcon} />}>
+      <Card glow className={styles.card}>
+        <h2 className={styles.accountHeading}>Account</h2>
+        <Button variant="secondary" onClick={() => setShowSignOut(true)} leftIcon={<LogOut className={styles.signOutIcon} />}>
           Sign out
         </Button>
 
-        <div className={s.divider} />
+        <div className={styles.divider} />
 
-        <div className={s.deleteRow}>
+        <div className={styles.deleteRow}>
           <div>
-            <p className={s.deleteTitle}>Delete account</p>
-            <p className={s.deleteHint}>Permanently erase your account and all creations.</p>
+            <p className={styles.deleteTitle}>Delete account</p>
+            <p className={styles.deleteHint}>Permanently erase your account and all creations.</p>
           </div>
           <button
             onClick={() => setShowDelete(true)}
-            className={s.deleteBtn}
+            className={styles.deleteBtn}
           >
-            <Trash2 className={s.trashIcon} /> Delete
+            <Trash2 className={styles.trashIcon} /> Delete
           </button>
         </div>
       </Card>

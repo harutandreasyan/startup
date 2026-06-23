@@ -24,21 +24,21 @@ export default function Button({
   disabled,
   ...props
 }: ButtonProps) {
-  const s = useStyles(
+  const styles = useStyles(
     () => makeButtonStyles(variant, size, fullWidth, className),
     [variant, size, fullWidth, className],
   );
 
   return (
     <button
-      className={s.button}
+      className={styles.button}
       disabled={disabled || loading}
       {...props}
     >
       {/* Single centered flex group: gap only applies between real, visible children */}
-      <span className={s.content}>
+      <span className={styles.content}>
         {loading ? (
-          <span className={s.spinner} />
+          <span className={styles.spinner} />
         ) : (
           leftIcon
         )}

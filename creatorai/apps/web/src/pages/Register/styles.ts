@@ -16,6 +16,8 @@ export const registerStyles = {
   error: 'flex items-center gap-2 p-3 bg-danger/10 border border-danger/20 rounded-xl text-danger text-sm animate-fade-in',
   errorIcon: 'h-4 w-4 shrink-0',
   label: 'block text-sm font-medium mb-1.5',
+  fieldError: 'mt-1.5 flex items-center gap-1.5 text-xs text-danger',
+  fieldErrorIcon: 'h-3.5 w-3.5 shrink-0',
   passwordHint: 'text-xs text-muted mt-1',
   footerText: 'mt-6 text-center text-sm text-muted',
   footerLink: 'text-primary hover:text-primary-hover font-medium',

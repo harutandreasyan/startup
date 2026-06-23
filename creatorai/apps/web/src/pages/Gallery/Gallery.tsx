@@ -106,33 +106,33 @@ export default function Gallery() {
     { label: 'Delete', icon: Trash2, action: () => setConfirmDeleteGen(gen), danger: true },
   ];
 
-  const s = useStyles(galleryStyles);
+  const styles = useStyles(galleryStyles);
 
   return (
-    <div className={s.root}>
+    <div className={styles.root}>
       <div>
-        <h1 className={s.title}>Gallery</h1>
-        <p className={s.subtitle}>Everything you've created, in one place.</p>
+        <h1 className={styles.title}>Gallery</h1>
+        <p className={styles.subtitle}>Everything you've created, in one place.</p>
       </div>
 
       {isLoading && (
-        <div className={s.loadingWrap}>
-          <Loader2 className={s.loadingIcon} />
+        <div className={styles.loadingWrap}>
+          <Loader2 className={styles.loadingIcon} />
         </div>
       )}
 
       {!isLoading && generations.length === 0 && (
-        <Card className={s.emptyCard}>
-          <div className={s.emptyIconWrap}>
-            <ImagesIcon className={s.emptyIcon} />
+        <Card className={styles.emptyCard}>
+          <div className={styles.emptyIconWrap}>
+            <ImagesIcon className={styles.emptyIcon} />
           </div>
-          <p className={s.emptyText}>Your generations will appear here.</p>
+          <p className={styles.emptyText}>Your generations will appear here.</p>
           <Link
             to="/generate"
-            className={s.emptyLink}
+            className={styles.emptyLink}
           >
-            <span className={s.emptyLinkInner}>
-              <Sparkles className={s.emptyLinkIcon} /> Create something
+            <span className={styles.emptyLinkInner}>
+              <Sparkles className={styles.emptyLinkIcon} /> Create something
             </span>
           </Link>
         </Card>
@@ -143,7 +143,7 @@ export default function Gallery() {
           variants={gridContainer}
           initial="hidden"
           animate="show"
-          className={s.grid}
+          className={styles.grid}
         >
           {generations.map((g) => {
             const ready = g.status === 'COMPLETED' && !!g.thumbnailUrl;
@@ -153,17 +153,17 @@ export default function Gallery() {
                 variants={gridItem}
                 whileHover={{ y: -4 }}
                 onClick={() => ready && setPreview(g)}
-                className={s.gridItem}
+                className={styles.gridItem}
               >
                 {ready ? (
                   <img
                     src={g.thumbnailUrl!}
                     alt={g.prompt || ''}
-                    className={s.gridImg}
+                    className={styles.gridImg}
                   />
                 ) : (
-                  <div className={s.processing}>
-                    <Loader2 className={s.processingIcon} />
+                  <div className={styles.processing}>
+                    <Loader2 className={styles.processingIcon} />
                     Processing
                   </div>
                 )}
@@ -173,9 +173,9 @@ export default function Gallery() {
                     <button
                       onClick={(e) => openMenu(e, g)}
                       aria-label="More options"
-                      className={s.menuBtn}
+                      className={styles.menuBtn}
                     >
-                      <MoreVertical className={s.menuBtnIcon} />
+                      <MoreVertical className={styles.menuBtnIcon} />
                     </button>
                     <button
                       onClick={(e) => {
@@ -184,9 +184,9 @@ export default function Gallery() {
                       }}
                       aria-label="Download"
                       title="Download"
-                      className={s.downloadBtn}
+                      className={styles.downloadBtn}
                     >
-                      <Download className={s.downloadBtnIcon} />
+                      <Download className={styles.downloadBtnIcon} />
                     </button>
                   </>
                 )}
@@ -200,9 +200,9 @@ export default function Gallery() {
       {menu &&
         createPortal(
           <>
-            <div className={s.dropdownOverlay} onClick={() => setMenu(null)} />
+            <div className={styles.dropdownOverlay} onClick={() => setMenu(null)} />
             <div
-              className={s.dropdown}
+              className={styles.dropdown}
               style={{ top: menu.top, right: menu.right }}
             >
               {menuItems(menu.gen).map((item) => (
@@ -212,9 +212,9 @@ export default function Gallery() {
                     item.action();
                     setMenu(null);
                   }}
-                  className={s.dropdownItem(item.danger)}
+                  className={styles.dropdownItem(item.danger)}
                 >
-                  <item.icon className={s.dropdownItemIcon} />
+                  <item.icon className={styles.dropdownItemIcon} />
                   {item.label}
                 </button>
               ))}
@@ -227,42 +227,42 @@ export default function Gallery() {
       {preview &&
         createPortal(
           <div
-            className={s.previewOverlay}
+            className={styles.previewOverlay}
             onClick={() => setPreview(null)}
           >
-            <div className={s.previewClose}>
+            <div className={styles.previewClose}>
               <button
                 onClick={() => setPreview(null)}
                 aria-label="Close"
-                className={s.previewCloseBtn}
+                className={styles.previewCloseBtn}
               >
-                <X className={s.previewCloseIcon} />
+                <X className={styles.previewCloseIcon} />
               </button>
             </div>
             <div
-              className={s.previewImgWrap}
+              className={styles.previewImgWrap}
               onClick={(e) => e.stopPropagation()}
             >
               <img
                 src={preview.outputUrls[0]}
                 alt={preview.prompt || ''}
-                className={s.previewImg}
+                className={styles.previewImg}
               />
             </div>
-            <div className={s.previewActions} onClick={(e) => e.stopPropagation()}>
-              <Button onClick={() => downloadImage(preview.outputUrls[0], preview.id)} leftIcon={<Download className={s.previewActionIcon} />}>
-                <span className={s.previewActionInline}>Download</span>
+            <div className={styles.previewActions} onClick={(e) => e.stopPropagation()}>
+              <Button onClick={() => downloadImage(preview.outputUrls[0], preview.id)} leftIcon={<Download className={styles.previewActionIcon} />}>
+                <span className={styles.previewActionInline}>Download</span>
               </Button>
               <a href={preview.outputUrls[0]} target="_blank" rel="noopener noreferrer">
-                <Button variant="secondary" leftIcon={<ExternalLink className={s.previewActionIcon} />}>
-                  <span className={s.previewActionInline}>Open</span>
+                <Button variant="secondary" leftIcon={<ExternalLink className={styles.previewActionIcon} />}>
+                  <span className={styles.previewActionInline}>Open</span>
                 </Button>
               </a>
-              <Button variant="secondary" onClick={() => setDetails(preview)} leftIcon={<Info className={s.previewActionIcon} />}>
-                <span className={s.previewActionInline}>Details</span>
+              <Button variant="secondary" onClick={() => setDetails(preview)} leftIcon={<Info className={styles.previewActionIcon} />}>
+                <span className={styles.previewActionInline}>Details</span>
               </Button>
-              <Button variant="danger" onClick={() => setConfirmDeleteGen(preview)} leftIcon={<Trash2 className={s.previewActionIcon} />}>
-                <span className={s.previewActionInline}>Delete</span>
+              <Button variant="danger" onClick={() => setConfirmDeleteGen(preview)} leftIcon={<Trash2 className={styles.previewActionIcon} />}>
+                <span className={styles.previewActionInline}>Delete</span>
               </Button>
             </div>
           </div>,
@@ -272,10 +272,10 @@ export default function Gallery() {
       {/* Details modal */}
       <Modal open={!!details} onClose={() => setDetails(null)} title="Details">
         {details && (
-          <div className={s.modalBody}>
+          <div className={styles.modalBody}>
             {details.prompt && <Detail label="Prompt" value={details.prompt} copyable />}
             {details.negativePrompt && <Detail label="Negative prompt" value={details.negativePrompt} copyable />}
-            <div className={s.modalDivider} />
+            <div className={styles.modalDivider} />
             <Detail label="Type" value={details.type.replaceAll('_', ' ').toLowerCase()} />
             <Detail label="Model" value={details.model} />
             <Detail label="Cost" value={`${details.creditsCost} credits`} />
@@ -300,7 +300,7 @@ export default function Gallery() {
 
 function Detail({ label, value, copyable }: { label: string; value: string; copyable?: boolean }) {
   const [copied, setCopied] = useState(false);
-  const s = useStyles(galleryStyles);
+  const styles = useStyles(galleryStyles);
 
   const copy = async () => {
     try {
@@ -315,21 +315,21 @@ function Detail({ label, value, copyable }: { label: string; value: string; copy
 
   return (
     <div>
-      <div className={s.detailHeader}>
-        <p className={s.detailLabel}>{label}</p>
+      <div className={styles.detailHeader}>
+        <p className={styles.detailLabel}>{label}</p>
         {copyable && (
           <button
             onClick={copy}
             aria-label={`Copy ${label.toLowerCase()}`}
             title="Copy"
-            className={s.detailCopyBtn}
+            className={styles.detailCopyBtn}
           >
-            {copied ? <Check className={s.detailCheckIcon} /> : <Copy className={s.detailCopyIcon} />}
+            {copied ? <Check className={styles.detailCheckIcon} /> : <Copy className={styles.detailCopyIcon} />}
             {copied ? 'Copied' : 'Copy'}
           </button>
         )}
       </div>
-      <p className={s.detailValue}>{value}</p>
+      <p className={styles.detailValue}>{value}</p>
     </div>
   );
 }

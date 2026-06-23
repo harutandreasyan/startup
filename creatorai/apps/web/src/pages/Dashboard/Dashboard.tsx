@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { motion, type Variants } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import {
   Image as ImageIcon,
@@ -36,54 +36,43 @@ const ACTIONS: Action[] = [
   { to: '/generate?type=INPAINT', label: 'Inpaint / Edit', desc: 'Edit parts of an image', icon: Brush, tint: { c1: '#ec4899', c2: '#7c5cff' } },
 ];
 
-const container: Variants = { hidden: {}, show: { transition: { staggerChildren: 0.06 } } };
-const item: Variants = {
-  hidden: { opacity: 0, y: 16 },
-  show: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 300, damping: 24 } },
-};
-
 export default function Dashboard() {
   const user = useAuthStore((s) => s.user);
   const { data } = useQuery({ queryKey: ['generations'], queryFn: () => listGenerations({ limit: 8 }) });
   const recent = (data?.data ?? []).filter((g) => g.status === 'COMPLETED' && g.thumbnailUrl).slice(0, 6);
-  const s = useStyles(dashboardStyles);
+  const styles = useStyles(dashboardStyles);
 
   return (
-    <div className={s.root}>
+    <div className={styles.root}>
       <div>
-        <h1 className={s.heading}>
-          Welcome back{user?.name ? <>, <span className={s.headingName}>{user.name}</span></> : ''}
+        <h1 className={styles.heading}>
+          Welcome back{user?.name ? <>, <span className={styles.headingName}>{user.name}</span></> : ''}
         </h1>
-        <p className={s.headingSub}>What would you like to create today?</p>
+        <p className={styles.headingSub}>What would you like to create today?</p>
       </div>
 
       {/* Quick actions with 3D items */}
       <div>
-        <h2 className={s.sectionLabel}>Create</h2>
-        <motion.div
-          variants={container}
-          initial="hidden"
-          animate="show"
-          className={s.actionsGrid}
-        >
+        <h2 className={styles.sectionLabel}>Create</h2>
+        <div className={styles.actionsGrid}>
           {ACTIONS.map((a) => {
             const faces = Array.from({ length: 6 }, () => (
-              <a.icon className={s.faceIcon} strokeWidth={1.9} />
+              <a.icon className={styles.faceIcon} strokeWidth={1.9} />
             ));
             return (
-              <motion.div key={a.to} variants={item} whileHover={{ y: -4 }} whileTap={{ scale: 0.98 }}>
+              <motion.div key={a.to} whileHover={{ y: -4 }} whileTap={{ scale: 0.98 }}>
                 <Link to={a.to}>
-                  <Card glow className={s.card}>
-                    <div className={s.cardRow}>
-                      <div className={s.cubeWrap}>
+                  <Card glow className={styles.card}>
+                    <div className={styles.cardRow}>
+                      <div className={styles.cubeWrap}>
                         <Cube3D size={46} faces={faces} spin={16} tint={a.tint} mini perspective={500} />
                       </div>
-                      <div className={s.cardBody}>
-                        <h3 className={s.cardTitle}>
+                      <div className={styles.cardBody}>
+                        <h3 className={styles.cardTitle}>
                           {a.label}
-                          <ArrowRight className={s.cardArrow} />
+                          <ArrowRight className={styles.cardArrow} />
                         </h3>
-                        <p className={s.cardDesc}>{a.desc}</p>
+                        <p className={styles.cardDesc}>{a.desc}</p>
                       </div>
                     </div>
                   </Card>
@@ -91,63 +80,58 @@ export default function Dashboard() {
               </motion.div>
             );
           })}
-        </motion.div>
+        </div>
       </div>
 
       {/* Recent — compact */}
       <div>
-        <div className={s.recentHeader}>
-          <h2 className={s.recentLabel}>Recent creations</h2>
-          <Link to="/gallery" className={s.viewAllLink}>
-            View all <ArrowRight className={s.viewAllIcon} />
+        <div className={styles.recentHeader}>
+          <h2 className={styles.recentLabel}>Recent creations</h2>
+          <Link to="/gallery" className={styles.viewAllLink}>
+            View all <ArrowRight className={styles.viewAllIcon} />
           </Link>
         </div>
         {recent.length === 0 ? (
-          <Card className={s.emptyCard}>
-            <div className={s.emptyCubeWrap}>
+          <Card className={styles.emptyCard}>
+            <div className={styles.emptyCubeWrap}>
               <Cube3D
                 size={40}
                 mini
                 spin={14}
                 perspective={500}
-                faces={Array.from({ length: 6 }, () => <Sparkles className={s.sparkleFaceIcon} />)}
+                faces={Array.from({ length: 6 }, () => <Sparkles className={styles.sparkleFaceIcon} />)}
               />
             </div>
-            <div className={s.emptyBody}>
-              <p className={s.emptyTitle}>Nothing here yet</p>
-              <p className={s.emptyDesc}>Your generated work will show up here.</p>
+            <div className={styles.emptyBody}>
+              <p className={styles.emptyTitle}>Nothing here yet</p>
+              <p className={styles.emptyDesc}>Your generated work will show up here.</p>
             </div>
             <Link
               to="/generate"
-              className={s.emptyLink}
+              className={styles.emptyLink}
             >
-              <span className={s.emptyLinkInner}>
-                <Sparkles className={s.emptyLinkIcon} /> Create
+              <span className={styles.emptyLinkInner}>
+                <Sparkles className={styles.emptyLinkIcon} /> Create
               </span>
             </Link>
           </Card>
         ) : (
-          <motion.div
-            variants={container}
-            initial="hidden"
-            animate="show"
-            className={s.recentRow}
-          >
+          <div className={styles.recentRow}>
             {recent.map((g) => (
-              <motion.div key={g.id} variants={item} whileHover={{ y: -3 }}>
+              <motion.div key={g.id} whileHover={{ y: -3 }}>
                 <Link
                   to="/gallery"
-                  className={s.recentLink}
+                  className={styles.recentLink}
                 >
                   <img
                     src={g.thumbnailUrl!}
                     alt={g.prompt || ''}
-                    className={s.recentImg}
+                    className={styles.recentImg}
                   />
                 </Link>
               </motion.div>
             ))}
-          </motion.div>
+          </div>
         )}
       </div>
     </div>

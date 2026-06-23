@@ -16,7 +16,7 @@ interface AvatarCropperProps {
 }
 
 export default function AvatarCropper({ file, saving, onCancel, onApply }: AvatarCropperProps) {
-  const s = useStyles(avatarCropperStyles);
+  const styles = useStyles(avatarCropperStyles);
   const [img, setImg] = useState<HTMLImageElement | null>(null);
   const [zoom, setZoom] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
@@ -85,9 +85,9 @@ export default function AvatarCropper({ file, saving, onCancel, onApply }: Avata
 
   return (
     <Modal open onClose={onCancel} title="Adjust photo">
-      <div className={s.body}>
+      <div className={styles.body}>
         <div
-          className={s.cropBox}
+          className={styles.cropBox}
           style={{ width: BOX, height: BOX, maxWidth: '70vw', maxHeight: '70vw' }}
           onPointerDown={onPointerDown}
           onPointerMove={onPointerMove}
@@ -98,7 +98,7 @@ export default function AvatarCropper({ file, saving, onCancel, onApply }: Avata
               src={img.src}
               alt="Crop preview"
               draggable={false}
-              className={s.cropImg}
+              className={styles.cropImg}
               // maxWidth/maxHeight 'none' overrides Tailwind's base `img { max-width:100% }`,
               // which would otherwise cap width and break the aspect ratio while zooming.
               style={{ width: dispW, height: dispH, left: centerX, top: centerY, maxWidth: 'none', maxHeight: 'none' }}
@@ -106,10 +106,10 @@ export default function AvatarCropper({ file, saving, onCancel, onApply }: Avata
           )}
         </div>
 
-        <p className={s.hint}>Drag to reposition</p>
+        <p className={styles.hint}>Drag to reposition</p>
 
-        <div className={s.sliderRow}>
-          <ZoomIn className={s.sliderIcon} />
+        <div className={styles.sliderRow}>
+          <ZoomIn className={styles.sliderIcon} />
           <input
             type="range"
             min={1}
@@ -117,11 +117,11 @@ export default function AvatarCropper({ file, saving, onCancel, onApply }: Avata
             step={0.01}
             value={zoom}
             onChange={(e) => onZoomChange(Number(e.target.value))}
-            className={s.slider}
+            className={styles.slider}
           />
         </div>
 
-        <div className={s.actions}>
+        <div className={styles.actions}>
           <Button variant="ghost" fullWidth onClick={onCancel} disabled={saving}>
             Cancel
           </Button>

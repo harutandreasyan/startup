@@ -14,76 +14,76 @@ const FEATURES = [
 ];
 
 export default function Landing() {
-  const s = useStyles(landingStyles);
+  const styles = useStyles(landingStyles);
   return (
-    <div className={s.root}>
+    <div className={styles.root}>
       <AuroraBackground />
 
-      <header className={s.header}>
+      <header className={styles.header}>
         <Logo />
-        <div className={s.headerActions}>
+        <div className={styles.headerActions}>
           <ThemeToggle />
-          <Link to="/login" className={s.signInLink}>
+          <Link to="/login" className={styles.signInLink}>
             Sign in
           </Link>
           <Link
             to="/register"
-            className={s.getStartedLink}
+            className={styles.getStartedLink}
           >
             Get started
           </Link>
         </div>
       </header>
 
-      <section className={s.hero}>
-        <div className={s.heroCopy}>
-          <span className={s.heroBadge}>
-            <Sparkles className={s.heroBadgeIcon} /> AI-powered creative suite
+      <section className={styles.hero}>
+        <div className={styles.heroCopy}>
+          <span className={styles.heroBadge}>
+            <Sparkles className={styles.heroBadgeIcon} /> AI-powered creative suite
           </span>
-          <h1 className={s.heroTitle}>
+          <h1 className={styles.heroTitle}>
             Create stunning visuals
             <br />
-            <span className={s.heroTitleGradient}>with AI</span>
+            <span className={styles.heroTitleGradient}>with AI</span>
           </h1>
-          <p className={s.heroDesc}>
+          <p className={styles.heroDesc}>
             Generate images, videos, and 3D models — one platform, every creative tool, on all your devices.
           </p>
-          <div className={s.heroCtaRow}>
+          <div className={styles.heroCtaRow}>
             <Link
               to="/register"
-              className={s.heroCta}
+              className={styles.heroCta}
             >
-              <span className={s.heroCtaInner}>
-                Start free — 20 credits <ArrowRight className={s.heroCtaIcon} />
+              <span className={styles.heroCtaInner}>
+                Start free — 20 credits <ArrowRight className={styles.heroCtaIcon} />
               </span>
             </Link>
           </div>
         </div>
 
         {/* 3D hero */}
-        <div className={s.heroScene}>
+        <div className={styles.heroScene}>
           <HeroScene />
         </div>
       </section>
 
-      <section className={s.features}>
-        <div className={s.featureGrid}>
+      <section className={styles.features}>
+        <div className={styles.featureGrid}>
           {FEATURES.map((f) => (
             <div
               key={f.title}
-              className={s.featureCard}
+              className={styles.featureCard}
             >
-              <div className={s.featureIconWrap}>
-                <f.icon className={s.featureIcon} />
+              <div className={styles.featureIconWrap}>
+                <f.icon className={styles.featureIcon} />
               </div>
-              <h3 className={s.featureTitle}>{f.title}</h3>
-              <p className={s.featureDesc}>{f.desc}</p>
+              <h3 className={styles.featureTitle}>{f.title}</h3>
+              <p className={styles.featureDesc}>{f.desc}</p>
             </div>
           ))}
         </div>
       </section>
 
-      <footer className={s.footer}>
+      <footer className={styles.footer}>
         © {new Date().getFullYear()} CreatorAI. All rights reserved.
       </footer>
     </div>

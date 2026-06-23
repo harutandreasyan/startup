@@ -3,18 +3,18 @@ import { useStyles } from '../../../lib/useStyles';
 import { logoStyles } from './styles';
 
 export default function Logo({ showText = true, className = '' }: { showText?: boolean; className?: string }) {
-  const s = useStyles(logoStyles);
+  const styles = useStyles(logoStyles);
   return (
-    <div className={s.root(className)}>
-      <div className={s.iconWrap}>
-        <div className={s.glow} />
-        <div className={s.iconBox}>
-          <Sparkles className={s.icon} strokeWidth={2.5} />
+    <div className={styles.root(className)}>
+      <div className={styles.iconWrap}>
+        <div className={styles.glow} />
+        <div className={styles.iconBox}>
+          <Sparkles className={styles.icon} strokeWidth={2.5} />
         </div>
       </div>
       {showText && (
-        <span className={s.text}>
-          Creator<span className={s.textAccent}>AI</span>
+        <span className={styles.text}>
+          Creator<span className={styles.textAccent}>AI</span>
         </span>
       )}
     </div>

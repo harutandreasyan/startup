@@ -1,5 +1,5 @@
 export const dashboardStyles = {
-  root: 'space-y-9',
+  root: 'space-y-9 animate-fade-in-up',
   heading: 'text-3xl sm:text-4xl font-extrabold tracking-tight',
   headingName: 'text-gradient',
   headingSub: 'text-muted mt-1.5',

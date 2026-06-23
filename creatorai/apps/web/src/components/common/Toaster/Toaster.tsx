@@ -13,10 +13,10 @@ const ICONS: Record<ToastType, typeof CheckCircle2> = {
 
 export default function Toaster() {
   const { toasts, dismiss } = useToastStore();
-  const s = useStyles(toasterStyles);
+  const styles = useStyles(toasterStyles);
 
   return createPortal(
-    <div className={s.container}>
+    <div className={styles.container}>
       <AnimatePresence initial={false}>
         {toasts.map((t) => {
           const Icon = ICONS[t.type];
@@ -28,17 +28,17 @@ export default function Toaster() {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -16, scale: 0.92 }}
               transition={{ type: 'spring', stiffness: 380, damping: 30 }}
-              className={s.toast(t.type)}
+              className={styles.toast(t.type)}
               role="status"
             >
-              <Icon className={s.icon} />
-              <span className={s.message}>{t.message}</span>
+              <Icon className={styles.icon} />
+              <span className={styles.message}>{t.message}</span>
               <button
                 onClick={() => dismiss(t.id)}
                 aria-label="Dismiss"
-                className={s.dismissBtn}
+                className={styles.dismissBtn}
               >
-                <X className={s.dismissIcon} />
+                <X className={styles.dismissIcon} />
               </button>
             </motion.div>
           );

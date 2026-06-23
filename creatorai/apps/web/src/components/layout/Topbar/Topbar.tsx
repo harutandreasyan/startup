@@ -8,16 +8,16 @@ import { topbarStyles } from './styles';
 
 export default function Topbar() {
   const user = useAuthStore((s) => s.user);
-  const s = useStyles(topbarStyles);
+  const styles = useStyles(topbarStyles);
 
   return (
-    <header className={s.header}>
+    <header className={styles.header}>
       <Link to="/dashboard" aria-label="Go to dashboard">
         <Logo />
       </Link>
-      <div className={s.actions}>
-        <span className={s.credits}>
-          <Gem className={s.gemIcon} />
+      <div className={styles.actions}>
+        <span className={styles.credits}>
+          <Gem className={styles.gemIcon} />
           {user?.creditBalance ?? 0}
         </span>
         <ThemeToggle />

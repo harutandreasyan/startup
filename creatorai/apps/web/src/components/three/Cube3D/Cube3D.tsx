@@ -26,7 +26,7 @@ function transforms(half: number) {
 
 /** Reusable pure-CSS animated 3D cube. No dependencies. */
 export default function Cube3D({ size, faces, spin = 20, perspective = 900, tint, mini = false, className = '' }: Cube3DProps) {
-  const s = useStyles(() => makeCube3DStyles(mini, className), [mini, className]);
+  const styles = useStyles(() => makeCube3DStyles(mini, className), [mini, className]);
   const half = size / 2;
   const ts = transforms(half);
   const style: CSSProperties = {
@@ -37,10 +37,10 @@ export default function Cube3D({ size, faces, spin = 20, perspective = 900, tint
   };
 
   return (
-    <div className={s.scene} style={{ perspective }}>
-      <div className={s.cube} style={style}>
+    <div className={styles.scene} style={{ perspective }}>
+      <div className={styles.cube} style={style}>
         {ts.map((t, i) => (
-          <div key={i} className={s.face} style={{ transform: t }}>
+          <div key={i} className={styles.face} style={{ transform: t }}>
             {faces[i]}
           </div>
         ))}

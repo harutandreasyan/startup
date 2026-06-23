@@ -48,7 +48,7 @@ export default function Generate() {
   const setUser = useAuthStore((s) => s.setUser);
   const queryClient = useQueryClient();
 
-  const s = useStyles(generateStyles);
+  const styles = useStyles(generateStyles);
 
   const { data: models, isLoading: modelsLoading } = useModels(type);
 
@@ -188,22 +188,22 @@ export default function Generate() {
   };
 
   return (
-    <div className={s.page}>
-      <div className={s.header}>
+    <div className={styles.page}>
+      <div className={styles.header}>
         <div>
-          <h1 className={s.title}>{TYPE_LABELS[type] || 'Generate'}</h1>
-          <p className={s.subtitle}>Describe it, tune it, create it.</p>
+          <h1 className={styles.title}>{TYPE_LABELS[type] || 'Generate'}</h1>
+          <p className={styles.subtitle}>Describe it, tune it, create it.</p>
         </div>
-        <span className={s.creditPill}>
-          <Gem className={s.creditIcon} />
+        <span className={styles.creditPill}>
+          <Gem className={styles.creditIcon} />
           {user?.creditBalance ?? 0}
         </span>
       </div>
 
-      <Card glow className={s.card}>
+      <Card glow className={styles.card}>
         {/* Model */}
         <div>
-          <label className={s.fieldLabel}>Model</label>
+          <label className={styles.fieldLabel}>Model</label>
           <Select
             value={effectiveModelSlug}
             onChange={setSelectedModel}
@@ -215,13 +215,13 @@ export default function Generate() {
 
         {needsPrompt && (
           <div>
-            <label className={s.fieldLabel}>Prompt</label>
+            <label className={styles.fieldLabel}>Prompt</label>
             <textarea
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
               placeholder="A red fox in a snowy pine forest, cinematic lighting…"
               rows={4}
-              className={s.textarea}
+              className={styles.textarea}
             />
           </div>
         )}
@@ -229,46 +229,46 @@ export default function Generate() {
         {needsPrompt && !showNegative && (
           <button
             onClick={() => setShowNegative(true)}
-            className={s.negativeToggle}
+            className={styles.negativeToggle}
           >
             + Add negative prompt
           </button>
         )}
         {needsPrompt && showNegative && (
           <div>
-            <label className={s.fieldLabel}>Negative prompt</label>
+            <label className={styles.fieldLabel}>Negative prompt</label>
             <textarea
               value={negativePrompt}
               onChange={(e) => setNegativePrompt(e.target.value)}
               placeholder="blurry, low quality, distorted…"
               rows={2}
-              className={s.textarea}
+              className={styles.textarea}
             />
           </div>
         )}
 
         {needsPrompt && (
-          <div className={s.grid}>
+          <div className={styles.grid}>
             <div>
-              <label className={s.fieldLabel}>Size</label>
+              <label className={styles.fieldLabel}>Size</label>
               <Select value={size} onChange={setSize} options={SIZES.map((sz) => ({ value: sz.value, label: sz.label }))} />
             </div>
             <div>
-              <label className={s.fieldLabel}>Seed</label>
+              <label className={styles.fieldLabel}>Seed</label>
               <input
                 type="number"
                 value={seed}
                 onChange={(e) => setSeed(e.target.value)}
                 placeholder="Random"
-                className={s.input}
+                className={styles.input}
               />
             </div>
           </div>
         )}
 
         {error && (
-          <div className={s.errorBox}>
-            <AlertCircle className={s.errorIcon} />
+          <div className={styles.errorBox}>
+            <AlertCircle className={styles.errorIcon} />
             {error}
           </div>
         )}
@@ -276,7 +276,7 @@ export default function Generate() {
         <Button
           onClick={handleGenerate}
           loading={isBusy}
-          leftIcon={!isBusy && <Sparkles className={s.generateIcon} />}
+          leftIcon={!isBusy && <Sparkles className={styles.generateIcon} />}
           size="lg"
           fullWidth
           disabled={isBusy || !currentModel || (needsPrompt && !prompt.trim())}
@@ -291,27 +291,27 @@ export default function Generate() {
 
       {/* Result */}
       {generation?.status === 'COMPLETED' && generation.outputUrls[0] && (
-        <Card glow className={s.resultCard}>
-          <img src={generation.outputUrls[0]} alt="Generated result" className={s.resultImage} />
-          <div className={s.resultActions}>
-            <Button onClick={handleDownload} leftIcon={<Download className={s.actionIcon} />}>
+        <Card glow className={styles.resultCard}>
+          <img src={generation.outputUrls[0]} alt="Generated result" className={styles.resultImage} />
+          <div className={styles.resultActions}>
+            <Button onClick={handleDownload} leftIcon={<Download className={styles.actionIcon} />}>
               Download
             </Button>
             <a href={generation.outputUrls[0]} target="_blank" rel="noopener noreferrer">
-              <Button variant="secondary" leftIcon={<ExternalLink className={s.actionIcon} />}>
+              <Button variant="secondary" leftIcon={<ExternalLink className={styles.actionIcon} />}>
                 Open
               </Button>
             </a>
-            <Button variant="secondary" onClick={handleGenerate} disabled={isBusy} leftIcon={<RefreshCw className={s.actionIcon} />}>
+            <Button variant="secondary" onClick={handleGenerate} disabled={isBusy} leftIcon={<RefreshCw className={styles.actionIcon} />}>
               Regenerate
             </Button>
             <Button
               variant="secondary"
               onClick={handleUpscale}
               disabled={isBusy}
-              leftIcon={<Maximize2 className={s.actionIcon} />}
+              leftIcon={<Maximize2 className={styles.actionIcon} />}
               title="Premium model — requires Replicate billing"
-              className={s.upscaleBtn}
+              className={styles.upscaleBtn}
             >
               Upscale
             </Button>
@@ -320,9 +320,9 @@ export default function Generate() {
       )}
 
       {generation?.status === 'FAILED' && (
-        <Card className={s.failedCard}>
-          <div className={s.failedRow}>
-            <AlertCircle className={s.failedIcon} />
+        <Card className={styles.failedCard}>
+          <div className={styles.failedRow}>
+            <AlertCircle className={styles.failedIcon} />
             <span>
               Generation failed: {generation.errorMessage || 'Unknown error'}. Your credits were refunded.
             </span>

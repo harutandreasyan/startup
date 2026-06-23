@@ -4,20 +4,20 @@ import { NAV_ITEMS } from '../navItems';
 import { mobileNavStyles } from './styles';
 
 export default function MobileNav() {
-  const s = useStyles(mobileNavStyles);
+  const styles = useStyles(mobileNavStyles);
 
   return (
-    <nav className={s.nav}>
-      <div className={s.grid}>
+    <nav className={styles.nav}>
+      <div className={styles.grid}>
         {NAV_ITEMS.map((item) => (
           <NavLink
             key={item.to}
             to={item.to}
-            className={({ isActive }) => s.link(isActive)}
+            className={({ isActive }) => styles.link(isActive)}
           >
             {({ isActive }) => (
               <>
-                <item.icon className={s.icon} strokeWidth={isActive ? 2.5 : 2} />
+                <item.icon className={styles.icon} strokeWidth={isActive ? 2.5 : 2} />
                 {item.label}
               </>
             )}

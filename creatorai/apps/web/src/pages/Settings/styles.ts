@@ -1,3 +1,6 @@
+const inputBase =
+  'w-full max-w-sm px-3.5 py-2.5 rounded-xl bg-surface-2 border text-sm text-foreground placeholder:text-muted/70 focus:outline-none focus:ring-4 transition-all duration-200';
+
 export const settingsStyles = {
   page: 'max-w-2xl space-y-6 animate-fade-in-up',
   title: 'text-2xl sm:text-3xl font-bold tracking-tight',
@@ -15,8 +18,10 @@ export const settingsStyles = {
   fields: 'space-y-5',
   usernameValue: 'text-sm',
   fieldRow: 'flex flex-wrap items-center gap-2',
-  inputClass:
-    'w-full max-w-sm px-3.5 py-2.5 rounded-xl bg-surface-2 border border-border text-sm text-foreground placeholder:text-muted/70 focus:outline-none focus:border-primary/60 focus:ring-4 focus:ring-primary/15 transition-all duration-200',
+  inputClass: (error = false) =>
+    `${inputBase} ${error ? 'border-danger/60 focus:border-danger/70 focus:ring-danger/20' : 'border-border focus:border-primary/60 focus:ring-primary/15'}`,
+  fieldError: 'mt-1.5 flex items-center gap-1.5 text-xs text-danger',
+  fieldErrorIcon: 'h-3.5 w-3.5 shrink-0',
   fieldLabel: 'block text-xs font-medium text-muted uppercase tracking-wider mb-1.5',
   subHeading: 'font-semibold mb-5 flex items-center gap-2',
   crownIcon: 'h-4 w-4 text-primary',

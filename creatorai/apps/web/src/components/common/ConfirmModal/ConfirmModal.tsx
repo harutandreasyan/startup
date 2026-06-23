@@ -27,12 +27,12 @@ export default function ConfirmModal({
   onConfirm,
   onCancel,
 }: ConfirmModalProps) {
-  const s = useStyles(confirmModalStyles);
+  const styles = useStyles(confirmModalStyles);
   return (
     <Modal open={open} onClose={onCancel} title={title} showClose>
-      <div className={s.body}>
-        {description && <p className={s.description}>{description}</p>}
-        <div className={s.actions}>
+      <div className={styles.body}>
+        {description && <p className={styles.description}>{description}</p>}
+        <div className={styles.actions}>
           <Button variant="ghost" fullWidth onClick={onCancel} disabled={loading}>
             {cancelLabel}
           </Button>
@@ -40,9 +40,9 @@ export default function ConfirmModal({
             <button
               onClick={onConfirm}
               disabled={loading}
-              className={s.dangerBtn}
+              className={styles.dangerBtn}
             >
-              {loading && <span className={s.spinner} />}
+              {loading && <span className={styles.spinner} />}
               {confirmLabel}
             </button>
           ) : (

@@ -13,7 +13,7 @@ interface DeleteAccountModalProps {
 }
 
 export default function DeleteAccountModal({ open, loading, onConfirm, onCancel }: DeleteAccountModalProps) {
-  const s = useStyles(deleteAccountModalStyles);
+  const styles = useStyles(deleteAccountModalStyles);
   const [stage, setStage] = useState<1 | 2>(1);
   const [text, setText] = useState('');
 
@@ -27,43 +27,43 @@ export default function DeleteAccountModal({ open, loading, onConfirm, onCancel 
 
   return (
     <Modal open={open} onClose={close} title="Delete account">
-      <div className={s.body}>
+      <div className={styles.body}>
         {stage === 1 ? (
           <>
-            <p className={s.text}>
+            <p className={styles.text}>
               Deleting your account permanently removes your profile, remaining credits, and every image
-              you've created. This <span className={s.emphasis}>cannot be undone</span>.
+              you've created. This <span className={styles.emphasis}>cannot be undone</span>.
             </p>
-            <div className={s.actions}>
+            <div className={styles.actions}>
               <Button variant="ghost" fullWidth onClick={close}>
                 Cancel
               </Button>
-              <button className={s.dangerBtn} onClick={() => setStage(2)}>
+              <button className={styles.dangerBtn} onClick={() => setStage(2)}>
                 Continue
               </button>
             </div>
           </>
         ) : (
           <>
-            <p className={s.text}>
-              To confirm, type <span className={s.emphasisStrong}>delete</span> below.
+            <p className={styles.text}>
+              To confirm, type <span className={styles.emphasisStrong}>delete</span> below.
             </p>
             <Input
               autoFocus
               value={text}
               onChange={(e) => setText(e.target.value)}
               placeholder="delete"
-              className={s.input}
+              className={styles.input}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && confirmable && !loading) onConfirm();
               }}
             />
-            <div className={s.actions}>
+            <div className={styles.actions}>
               <Button variant="ghost" fullWidth onClick={close} disabled={loading}>
                 Cancel
               </Button>
-              <button className={s.dangerBtn} disabled={!confirmable || loading} onClick={onConfirm}>
-                {loading && <span className={s.spinner} />}
+              <button className={styles.dangerBtn} disabled={!confirmable || loading} onClick={onConfirm}>
+                {loading && <span className={styles.spinner} />}
                 Delete forever
               </button>
             </div>

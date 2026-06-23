@@ -23,7 +23,7 @@ export default function Select({ value, onChange, options, disabled, placeholder
   const [rect, setRect] = useState<{ top: number; left: number; width: number } | null>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const selected = options.find((o) => o.value === value);
-  const s = useStyles(() => makeSelectStyles(open, disabled, !!selected), [open, disabled, selected]);
+  const styles = useStyles(() => makeSelectStyles(open, disabled, !!selected), [open, disabled, selected]);
 
   const place = () => {
     const el = triggerRef.current;
@@ -57,19 +57,19 @@ export default function Select({ value, onChange, options, disabled, placeholder
         type="button"
         disabled={disabled}
         onClick={() => setOpen((o) => !o)}
-        className={s.trigger}
+        className={styles.trigger}
       >
-        <span className={s.triggerLabel}>{selected ? selected.label : placeholder}</span>
-        <ChevronDown className={s.chevron} />
+        <span className={styles.triggerLabel}>{selected ? selected.label : placeholder}</span>
+        <ChevronDown className={styles.chevron} />
       </button>
 
       {open &&
         rect &&
         createPortal(
           <>
-            <div className={s.backdrop} onClick={() => setOpen(false)} />
+            <div className={styles.backdrop} onClick={() => setOpen(false)} />
             <div
-              className={s.menu}
+              className={styles.menu}
               style={{ top: rect.top, left: rect.left, width: rect.width }}
             >
               {options.map((o) => {
@@ -82,13 +82,13 @@ export default function Select({ value, onChange, options, disabled, placeholder
                       onChange(o.value);
                       setOpen(false);
                     }}
-                    className={s.option(active)}
+                    className={styles.option(active)}
                   >
-                    <span className={s.optionText}>
+                    <span className={styles.optionText}>
                       <span>{o.label}</span>
-                      {o.hint && <span className={s.optionHint}>{o.hint}</span>}
+                      {o.hint && <span className={styles.optionHint}>{o.hint}</span>}
                     </span>
-                    {active && <Check className={s.checkIcon} />}
+                    {active && <Check className={styles.checkIcon} />}
                   </button>
                 );
               })}

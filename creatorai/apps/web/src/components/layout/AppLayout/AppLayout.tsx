@@ -9,13 +9,13 @@ import { appLayoutStyles } from './styles';
 
 export default function AppLayout() {
   const { user, loading } = useAuthStore();
-  const s = useStyles(appLayoutStyles);
+  const styles = useStyles(appLayoutStyles);
 
   if (loading) {
     return (
-      <div className={s.loadingRoot}>
+      <div className={styles.loadingRoot}>
         <AuroraBackground />
-        <div className={s.spinner} />
+        <div className={styles.spinner} />
       </div>
     );
   }
@@ -23,12 +23,12 @@ export default function AppLayout() {
   if (!user) return <Navigate to="/login" replace />;
 
   return (
-    <div className={s.root}>
+    <div className={styles.root}>
       <AuroraBackground />
       <Sidebar />
-      <div className={s.content}>
+      <div className={styles.content}>
         <Topbar />
-        <main className={s.main}>
+        <main className={styles.main}>
           <Outlet />
         </main>
       </div>

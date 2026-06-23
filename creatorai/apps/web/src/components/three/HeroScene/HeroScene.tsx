@@ -9,7 +9,7 @@ const faceIcon = (Icon: typeof ImageIcon, app = false) => (
 
 /** Hero 3D cube — each face shows something users can create; app icon on top. */
 export default function HeroScene() {
-  const s = useStyles(heroSceneStyles);
+  const styles = useStyles(heroSceneStyles);
   // order: front, back, right, left, top, bottom
   const faces = [
     faceIcon(ImageIcon), // front — images
@@ -21,9 +21,9 @@ export default function HeroScene() {
   ];
 
   return (
-    <div className={s.container}>
-      <div className={s.glow} />
-      <div className={s.float}>
+    <div className={styles.container}>
+      <div className={styles.glow} />
+      <div className={styles.float}>
         <Cube3D size={172} faces={faces} spin={22} />
       </div>
     </div>

@@ -3,26 +3,33 @@ import { Eye, EyeOff } from 'lucide-react';
 import { useStyles } from '../../../lib/useStyles';
 import { inputStyles, passwordInputStyles } from './styles';
 
-export default function Input({ className = '', ...props }: InputHTMLAttributes<HTMLInputElement>) {
-  const s = useStyles(inputStyles);
-  return <input className={s.input(className)} {...props} />;
+type InputProps = InputHTMLAttributes<HTMLInputElement> & { error?: boolean };
+
+export default function Input({ className = '', error = false, ...props }: InputProps) {
+  const styles = useStyles(inputStyles);
+  return <input className={styles.input(className, error)} aria-invalid={error || undefined} {...props} />;
 }
 
-export function PasswordInput({ className = '', ...props }: InputHTMLAttributes<HTMLInputElement>) {
+export function PasswordInput({ className = '', error = false, ...props }: InputProps) {
   const [show, setShow] = useState(false);
-  const s = useStyles(passwordInputStyles);
+  const styles = useStyles(passwordInputStyles);
   return (
-    <div className={s.wrap}>
-      <input type={show ? 'text' : 'password'} className={s.input(className)} {...props} />
+    <div className={styles.wrap}>
+      <input
+        type={show ? 'text' : 'password'}
+        className={styles.input(className, error)}
+        aria-invalid={error || undefined}
+        {...props}
+      />
       <button
         type="button"
         onClick={() => setShow((s) => !s)}
         aria-label={show ? 'Hide password' : 'Show password'}
         title={show ? 'Hide password' : 'Show password'}
-        className={s.toggle}
+        className={styles.toggle}
         tabIndex={-1}
       >
-        {show ? <EyeOff className={s.icon} /> : <Eye className={s.icon} />}
+        {show ? <EyeOff className={styles.icon} /> : <Eye className={styles.icon} />}
       </button>
     </div>
   );
