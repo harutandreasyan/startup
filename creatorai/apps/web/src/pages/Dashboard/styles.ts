@@ -12,6 +12,7 @@ export const dashboardStyles = {
   cardBody: 'min-w-0',
   cardTitle: 'font-semibold text-sm flex items-center gap-1.5',
   cardArrow: 'h-3.5 w-3.5 text-primary opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all',
+  soonBadge: 'ml-1 px-1.5 py-0.5 rounded-md bg-surface-2 border border-border text-[10px] font-semibold uppercase tracking-wide text-muted',
   cardDesc: 'text-xs text-muted mt-0.5',
   recentHeader: 'flex items-center justify-between mb-3',
   recentLabel: 'text-xs font-semibold text-muted uppercase tracking-[0.15em]',

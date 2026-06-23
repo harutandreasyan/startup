@@ -89,11 +89,21 @@
 ## Phase 4: Expand Features (Weeks 9-12)
 > Goal: Video, 3D, editing features + more image models
 
+> **Free-tier expansion (done 2026-06-23):** Text-to-Image now has prompt-enhancing
+> **style presets** (Photorealistic / Cinematic / Anime / Digital Art / 3D Render /
+> Watercolor / Neon) — model-agnostic, free, applied client-side via
+> `apps/web/src/lib/generation.ts` (`STYLE_PRESETS` + `applyStyle`). The 5 tools that
+> require Replicate billing (Video, 3D, Background Removal, Upscale, Inpaint) are now
+> **gated**: a "Soon" badge on the dashboard and a polished coming-soon panel on the
+> Generate page (no credits can be spent on them). Single source of truth =
+> `AVAILABLE_TYPES` / `isTypeAvailable` in `lib/generation.ts`. When Replicate billing
+> is enabled, add the type to `AVAILABLE_TYPES` to unlock it.
+
 - [ ] **More AI Models**
-  - [ ] Add Flux Dev, SDXL, DALL-E 3 for images
-  - [ ] Add video generation (Kling, Wan)
-  - [ ] Add 3D generation (TripoSR)
-  - [ ] Add image editing (background removal, upscale, inpainting)
+  - [~] Image style presets (free, Pollinations) — **done**; real extra models (Flux Dev, SDXL, DALL-E 3) need Replicate/OpenAI billing
+  - [ ] Add video generation (Kling, Wan) — *gated "coming soon", needs Replicate billing*
+  - [ ] Add 3D generation (TripoSR) — *gated "coming soon", needs Replicate billing*
+  - [ ] Add image editing (background removal, upscale, inpainting) — *gated "coming soon", needs Replicate billing*
 
 - [ ] **Web App Expansion**
   - [ ] Video generation UI + player

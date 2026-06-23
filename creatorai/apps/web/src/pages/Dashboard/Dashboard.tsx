@@ -13,14 +13,16 @@ import {
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { listGenerations } from '@creatorai/api-client';
+import type { GenerationType } from '@creatorai/shared';
 import { useAuthStore } from '../../stores/auth.store';
+import { isTypeAvailable } from '../../lib/generation';
 import Card from '../../components/common/Card';
 import Cube3D from '../../components/three/Cube3D';
 import { useStyles } from '../../lib/useStyles';
 import { dashboardStyles } from './styles';
 
 interface Action {
-  to: string;
+  type: GenerationType;
   label: string;
   desc: string;
   icon: LucideIcon;
@@ -28,12 +30,12 @@ interface Action {
 }
 
 const ACTIONS: Action[] = [
-  { to: '/generate?type=TEXT_TO_IMAGE', label: 'Text to Image', desc: 'Generate images from prompts', icon: ImageIcon, tint: { c1: '#7c5cff', c2: '#d946ef' } },
-  { to: '/generate?type=TEXT_TO_VIDEO', label: 'Text to Video', desc: 'Create video clips from text', icon: Clapperboard, tint: { c1: '#4f7cff', c2: '#22d3ee' } },
-  { to: '/generate?type=TEXT_TO_3D', label: 'Text to 3D', desc: 'Generate 3D models from text', icon: Box, tint: { c1: '#d946ef', c2: '#7c5cff' } },
-  { to: '/generate?type=BACKGROUND_REMOVAL', label: 'Remove Background', desc: 'Erase backgrounds instantly', icon: Scissors, tint: { c1: '#22d3ee', c2: '#3dd68c' } },
-  { to: '/generate?type=UPSCALE', label: 'Upscale', desc: 'Enhance image resolution', icon: Maximize2, tint: { c1: '#8b5cf6', c2: '#22d3ee' } },
-  { to: '/generate?type=INPAINT', label: 'Inpaint / Edit', desc: 'Edit parts of an image', icon: Brush, tint: { c1: '#ec4899', c2: '#7c5cff' } },
+  { type: 'TEXT_TO_IMAGE', label: 'Text to Image', desc: 'Generate images from prompts', icon: ImageIcon, tint: { c1: '#7c5cff', c2: '#d946ef' } },
+  { type: 'TEXT_TO_VIDEO', label: 'Text to Video', desc: 'Create video clips from text', icon: Clapperboard, tint: { c1: '#4f7cff', c2: '#22d3ee' } },
+  { type: 'TEXT_TO_3D', label: 'Text to 3D', desc: 'Generate 3D models from text', icon: Box, tint: { c1: '#d946ef', c2: '#7c5cff' } },
+  { type: 'BACKGROUND_REMOVAL', label: 'Remove Background', desc: 'Erase backgrounds instantly', icon: Scissors, tint: { c1: '#22d3ee', c2: '#3dd68c' } },
+  { type: 'UPSCALE', label: 'Upscale', desc: 'Enhance image resolution', icon: Maximize2, tint: { c1: '#8b5cf6', c2: '#22d3ee' } },
+  { type: 'INPAINT', label: 'Inpaint / Edit', desc: 'Edit parts of an image', icon: Brush, tint: { c1: '#ec4899', c2: '#7c5cff' } },
 ];
 
 export default function Dashboard() {
@@ -59,9 +61,10 @@ export default function Dashboard() {
             const faces = Array.from({ length: 6 }, () => (
               <a.icon className={styles.faceIcon} strokeWidth={1.9} />
             ));
+            const available = isTypeAvailable(a.type);
             return (
-              <motion.div key={a.to} whileHover={{ y: -4 }} whileTap={{ scale: 0.98 }}>
-                <Link to={a.to}>
+              <motion.div key={a.type} whileHover={{ y: -4 }} whileTap={{ scale: 0.98 }}>
+                <Link to={`/generate?type=${a.type}`}>
                   <Card glow className={styles.card}>
                     <div className={styles.cardRow}>
                       <div className={styles.cubeWrap}>
@@ -70,7 +73,11 @@ export default function Dashboard() {
                       <div className={styles.cardBody}>
                         <h3 className={styles.cardTitle}>
                           {a.label}
-                          <ArrowRight className={styles.cardArrow} />
+                          {available ? (
+                            <ArrowRight className={styles.cardArrow} />
+                          ) : (
+                            <span className={styles.soonBadge}>Soon</span>
+                          )}
                         </h3>
                         <p className={styles.cardDesc}>{a.desc}</p>
                       </div>

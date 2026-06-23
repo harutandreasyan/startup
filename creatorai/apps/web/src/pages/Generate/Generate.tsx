@@ -1,14 +1,14 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import {
   Sparkles,
   Download,
   ExternalLink,
   RefreshCw,
-  Maximize2,
   Gem,
   AlertCircle,
+  Rocket,
 } from 'lucide-react';
 import { createGeneration, getGeneration, getMe } from '@creatorai/api-client';
 import type { Generation, GenerationType } from '@creatorai/shared';
@@ -17,6 +17,7 @@ import { useModels } from '../../hooks/useModels';
 import { connectWebSocket, onProgress } from '../../lib/websocket';
 import { apiErrorMessage, apiErrorStatus } from '../../lib/apiError';
 import { toast } from '../../stores/toast.store';
+import { isTypeAvailable, STYLE_PRESETS, applyStyle } from '../../lib/generation';
 import Button from '../../components/common/Button';
 import Card from '../../components/common/Card';
 import Select from '../../components/common/Select';
@@ -56,6 +57,7 @@ export default function Generate() {
   const [negativePrompt, setNegativePrompt] = useState('');
   const [selectedModel, setSelectedModel] = useState('');
   const [showNegative, setShowNegative] = useState(false);
+  const [styleId, setStyleId] = useState('none');
   const [size, setSize] = useState('1024x1024');
   const [seed, setSeed] = useState('');
   const [generation, setGeneration] = useState<Generation | null>(null);
@@ -137,10 +139,11 @@ export default function Generate() {
         params.height = height;
         if (seed.trim()) params.seed = Number(seed);
       }
+      const styledPrompt = applyStyle(prompt, STYLE_PRESETS.find((p) => p.id === styleId));
       const result = await createGeneration({
         type,
         model: currentModel.slug,
-        prompt: needsPrompt ? prompt : undefined,
+        prompt: needsPrompt ? styledPrompt : undefined,
         negativePrompt: negativePrompt || undefined,
         params,
       });
@@ -173,19 +176,41 @@ export default function Generate() {
     }
   };
 
-  const handleUpscale = async () => {
-    const url = generation?.outputUrls[0];
-    if (!url) return;
-    setError('');
-    try {
-      const result = await createGeneration({ type: 'UPSCALE', model: 'real-esrgan', inputImageUrl: url });
-      setGeneration(result);
-      refreshBalance();
-    } catch (err) {
-      if (apiErrorStatus(err) === 402) setError('Not enough credits to upscale.');
-      else setError(apiErrorMessage(err, 'Upscale failed to start.'));
-    }
-  };
+  if (!isTypeAvailable(type)) {
+    return (
+      <div className={styles.page}>
+        <div className={styles.header}>
+          <div>
+            <h1 className={styles.title}>{TYPE_LABELS[type] || 'Generate'}</h1>
+            <p className={styles.subtitle}>Describe it, tune it, create it.</p>
+          </div>
+          <span className={styles.creditPill}>
+            <Gem className={styles.creditIcon} />
+            {user?.creditBalance ?? 0}
+          </span>
+        </div>
+
+        <Card glow className={styles.comingSoonCard}>
+          <div className={styles.comingSoonIconWrap}>
+            <Rocket className={styles.comingSoonIcon} />
+          </div>
+          <h2 className={styles.comingSoonTitle}>{TYPE_LABELS[type] || 'This tool'} is coming soon</h2>
+          <p className={styles.comingSoonText}>
+            We're putting the finishing touches on this tool. In the meantime, Text to Image is live
+            and free — give it a try.
+          </p>
+          <div className={styles.comingSoonActions}>
+            <Link to="/generate?type=TEXT_TO_IMAGE">
+              <Button leftIcon={<Sparkles className={styles.generateIcon} />}>Try Text to Image</Button>
+            </Link>
+            <Link to="/dashboard">
+              <Button variant="secondary">Back to dashboard</Button>
+            </Link>
+          </div>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.page}>
@@ -248,6 +273,24 @@ export default function Generate() {
         )}
 
         {needsPrompt && (
+          <div>
+            <label className={styles.fieldLabel}>Style</label>
+            <div className={styles.styleRow}>
+              {STYLE_PRESETS.map((p) => (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => setStyleId(p.id)}
+                  className={styles.styleChip(styleId === p.id)}
+                >
+                  {p.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {needsPrompt && (
           <div className={styles.grid}>
             <div>
               <label className={styles.fieldLabel}>Size</label>
@@ -304,16 +347,6 @@ export default function Generate() {
             </a>
             <Button variant="secondary" onClick={handleGenerate} disabled={isBusy} leftIcon={<RefreshCw className={styles.actionIcon} />}>
               Regenerate
-            </Button>
-            <Button
-              variant="secondary"
-              onClick={handleUpscale}
-              disabled={isBusy}
-              leftIcon={<Maximize2 className={styles.actionIcon} />}
-              title="Premium model — requires Replicate billing"
-              className={styles.upscaleBtn}
-            >
-              Upscale
             </Button>
           </div>
         </Card>
