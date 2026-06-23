@@ -1,5 +1,5 @@
 export const settingsStyles = {
-  page: 'max-w-2xl space-y-6',
+  page: 'max-w-2xl space-y-6 animate-fade-in-up',
   title: 'text-2xl sm:text-3xl font-bold tracking-tight',
   card: 'p-6',
   cardHeading: 'font-semibold mb-5',

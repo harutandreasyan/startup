@@ -1,5 +1,5 @@
 export const creditsStyles = {
-  root: 'space-y-8',
+  root: 'space-y-8 animate-fade-in-up',
   header: 'flex flex-wrap items-end justify-between gap-3',
   title: 'text-2xl sm:text-3xl font-bold tracking-tight',
   subtitle: 'text-muted mt-1',

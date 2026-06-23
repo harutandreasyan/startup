@@ -2,7 +2,7 @@ const inputClass =
   'w-full px-3.5 py-2.5 rounded-xl bg-surface-2 border border-border text-sm text-foreground placeholder:text-muted/70 focus:outline-none focus:border-primary/60 focus:ring-4 focus:ring-primary/15 transition-all duration-200';
 
 export const generateStyles = {
-  page: 'max-w-3xl mx-auto space-y-6',
+  page: 'max-w-3xl mx-auto space-y-6 animate-fade-in-up',
   header: 'flex items-center justify-between',
   title: 'text-2xl sm:text-3xl font-bold tracking-tight',
   subtitle: 'text-muted text-sm mt-0.5',
