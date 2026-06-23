@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { Check, Gem, CheckCircle2, AlertCircle, XCircle, Sparkles } from 'lucide-react';
-import { getCreditPacks, purchaseCredits, getCreditHistory, subscribe } from '@creatorai/api-client';
+import { Check, Gem, CheckCircle2, AlertCircle, XCircle, Sparkles, Images, Wand2 } from 'lucide-react';
+import { getCreditPacks, purchaseCredits, getCreditHistory, subscribe, getStats } from '@creatorai/api-client';
 import { PLANS } from '@creatorai/shared';
 import { useAuthStore } from '../../stores/auth.store';
 import { apiErrorMessage } from '../../lib/apiError';
+import { typeLabel } from '../../lib/generation';
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import { useStyles } from '../../lib/useStyles';
@@ -23,6 +24,7 @@ export default function Credits() {
 
   const { data: packs } = useQuery({ queryKey: ['credit-packs'], queryFn: getCreditPacks });
   const { data: history } = useQuery({ queryKey: ['credits-history'], queryFn: () => getCreditHistory({ limit: 10 }) });
+  const { data: stats } = useQuery({ queryKey: ['user-stats'], queryFn: getStats });
 
   const handlePurchase = async (packId: string) => {
     setError('');
@@ -66,6 +68,45 @@ export default function Credits() {
       {status === 'subscribed' && <Banner icon={CheckCircle2} tone="success">Subscription active! Your monthly credits will appear shortly.</Banner>}
       {status === 'cancelled' && <Banner icon={XCircle} tone="muted">Checkout cancelled — no charge was made.</Banner>}
       {error && <Banner icon={AlertCircle} tone="danger">{error}</Banner>}
+
+      {/* Usage */}
+      {stats && stats.totalGenerations > 0 && (
+        <section>
+          <h2 className={styles.sectionHeading}>Your usage</h2>
+          <div className={styles.usageGrid}>
+            <Card className={styles.statCard}>
+              <div className={styles.statIconWrap}><Images className={styles.statIcon} /></div>
+              <div>
+                <p className={styles.statValue}>{stats.completedGenerations}</p>
+                <p className={styles.statLabel}>Creations</p>
+              </div>
+            </Card>
+            <Card className={styles.statCard}>
+              <div className={styles.statIconWrap}><Gem className={styles.statIcon} /></div>
+              <div>
+                <p className={styles.statValue}>{stats.creditsSpent}</p>
+                <p className={styles.statLabel}>Credits spent</p>
+              </div>
+            </Card>
+            <Card className={styles.statCard}>
+              <div className={styles.statIconWrap}><Wand2 className={styles.statIcon} /></div>
+              <div>
+                <p className={styles.statValue}>{stats.byType.length}</p>
+                <p className={styles.statLabel}>Tools used</p>
+              </div>
+            </Card>
+          </div>
+          {stats.byType.length > 0 && (
+            <div className={styles.byTypeRow}>
+              {stats.byType.map((t) => (
+                <span key={t.type} className={styles.byTypeChip}>
+                  {typeLabel(t.type)} <span className={styles.byTypeChipCount}>{t.count}</span>
+                </span>
+              ))}
+            </div>
+          )}
+        </section>
+      )}
 
       {/* Plans */}
       <section>

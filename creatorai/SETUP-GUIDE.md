@@ -190,19 +190,22 @@ Open **http://localhost:5180** in your browser. 🎉
 
 ---
 
-## PART 9 — (Optional, future) Enable Stripe Payments — TEST mode
+## PART 9 — Enable Stripe Payments — TEST mode
 
-This lets users buy credits. You can test it for free with Stripe's test mode — no real money.
+This lets users buy credits and subscribe to plans. You can test the whole flow for
+free with Stripe's test mode — **no real money is ever charged**. No products or
+prices need to be created in Stripe: the app builds the checkout line items on the
+fly (inline `price_data`), so all you need are two keys.
 
 1. Create a free account at **https://stripe.com** (no business details needed for test mode)
 2. In the Stripe Dashboard, make sure the **"Test mode"** toggle (top-right) is **ON**
-3. Go to **Developers → API keys** → copy the **Secret key** (`sk_test_...`)
+3. Go to **Developers → API keys** → copy the **Secret key** (`sk_test_...`, ~107 chars)
 4. Put it in `apps/api/.env`:
    ```env
    STRIPE_SECRET_KEY=sk_test_YOUR-KEY
    ```
-5. **Set up the webhook** (so credits are granted after payment). For local testing,
-   install the Stripe CLI:
+5. **Set up the webhook** (so credits are granted after payment). Stripe can't reach
+   `localhost`, so forward events with the Stripe CLI:
    ```bash
    brew install stripe/stripe-cli/stripe
    stripe login
@@ -212,9 +215,21 @@ This lets users buy credits. You can test it for free with Stripe's test mode �
    ```env
    STRIPE_WEBHOOK_SECRET=whsec_FROM-CLI
    ```
-6. Restart the API. Go to **Credits** page → **Buy** → you'll be sent to Stripe Checkout.
-   Pay with the test card: **`4242 4242 4242 4242`**, any future expiry, any CVC.
-7. Credits get added to your account automatically via the webhook. ✅
+   ⚠️ **Keep this `stripe listen` terminal running** the whole time you're testing —
+   if it's closed, payments succeed but credits won't be granted (the webhook never
+   reaches your machine).
+6. **Restart the API** so it loads the new keys (the Stripe client reads them at
+   startup). Go to **Credits** → **Buy a pack** → you'll be sent to Stripe Checkout.
+   Pay with the test card **`4242 4242 4242 4242`**, any future expiry, any CVC, any ZIP.
+7. Credits are added to your account automatically via the webhook. ✅
+8. **Subscriptions** work the same way: on **Credits**, click **Subscribe to Pro** →
+   pay with the same test card → the webhook grants the plan's monthly credits and
+   marks you on the **Pro** plan. Cancel anytime from **Settings → Subscription**.
+
+**If credits don't appear after a successful test payment:**
+- Check the `stripe listen` terminal — it should log `checkout.session.completed` being forwarded (look for a `200` response).
+- Make sure the API was restarted *after* you saved the keys, and that
+  `STRIPE_WEBHOOK_SECRET` matches the value the running `stripe listen` printed.
 
 ## PART 10 — (Optional, future) Enable Premium AI models (Replicate)
 

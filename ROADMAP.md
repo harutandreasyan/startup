@@ -78,11 +78,15 @@
   - [x] Implement Checkout Session creation (POST /credits/purchase)
   - [x] Implement webhook handler (POST /payments/stripe/webhook, signature-verified, idempotent)
   - [x] Build credits purchase page (web) — redirects to Stripe Checkout
-  - [ ] Create Stripe account + test full purchase flow (test mode) — *your step, see SETUP-GUIDE.md Part 9*
+  - [x] Create Stripe account + test purchase/subscription flow (test mode) — **VERIFIED 2026-06-23**
 
-> **Phase 3 status:** All payment code written and typechecks clean. To test, create a
-> free Stripe account, add TEST-mode keys to `apps/api/.env`, and use test card
-> `4242 4242 4242 4242`. Guide in [SETUP-GUIDE.md](creatorai/SETUP-GUIDE.md) Part 9.
+> **Phase 3 status:** ✅ VERIFIED. Stripe TEST-mode keys configured in `apps/api/.env`.
+> Confirmed end-to-end on 2026-06-23: (1) `/credits/purchase` and `/payments/subscribe`
+> both create real `checkout.stripe.com` sessions (secret key live, inline `price_data`);
+> (2) a signature-verified `checkout.session.completed` webhook granted credits
+> (12→112), recorded a PURCHASE transaction, and the web UI reflected the new balance +
+> history. The hosted Stripe card form itself isn't automatable (cross-origin iframe) —
+> that's Stripe's own UI. Setup steps in [SETUP-GUIDE.md](creatorai/SETUP-GUIDE.md) Part 9.
 
 ---
 
@@ -106,16 +110,17 @@
   - [ ] Add image editing (background removal, upscale, inpainting) — *gated "coming soon", needs Replicate billing*
 
 - [ ] **Web App Expansion**
-  - [ ] Video generation UI + player
-  - [ ] 3D model viewer (three.js)
-  - [ ] Image editing UI (inpaint mask drawing)
-  - [ ] Subscription management page
-  - [ ] Settings page (profile, change password, delete account)
+  - [ ] Video generation UI + player — *gated coming-soon*
+  - [ ] 3D model viewer (three.js) — *gated coming-soon*
+  - [ ] Image editing UI (inpaint mask drawing) — *gated coming-soon*
+  - [x] Subscription management — plans + subscribe on Credits, cancel in Settings (test needs Stripe keys)
+  - [x] Settings page (profile, editable name [required], change email, delete account)
+  - [x] **Usage stats** on Credits (creations / credits spent / tools used + by-type) via `GET /users/me/stats`
 
 - [ ] **Backend Expansion**
   - [ ] Multiple queue types (image, video, 3D)
-  - [ ] Subscription management endpoints
-  - [ ] User statistics endpoints
+  - [x] Subscription management endpoints (subscribe + cancel + webhook)
+  - [x] User statistics endpoints (`GET /users/me/stats`) — now surfaced in the web UI
 
 ---
 

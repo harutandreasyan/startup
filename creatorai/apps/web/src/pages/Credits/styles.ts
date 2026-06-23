@@ -9,6 +9,18 @@ export const creditsStyles = {
   balanceLabel: 'text-muted text-sm',
 
   sectionHeading: 'text-sm font-semibold text-muted uppercase tracking-wider mb-3',
+
+  usageGrid: 'grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4',
+  statCard: 'p-4 sm:p-5 flex items-center gap-3.5',
+  statIconWrap: 'h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0',
+  statIcon: 'h-5 w-5 text-primary',
+  statValue: 'text-2xl font-bold tracking-tight tabular-nums leading-none',
+  statLabel: 'text-xs text-muted mt-1',
+  byTypeRow: 'flex flex-wrap gap-2 mt-3',
+  byTypeChip:
+    'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-2 border border-border text-xs',
+  byTypeChipCount: 'font-semibold text-primary tabular-nums',
+
   planGrid: 'grid grid-cols-1 md:grid-cols-3 gap-4',
   planCard: (isCurrent: boolean, featured: boolean) =>
     `p-6 relative flex flex-col ${

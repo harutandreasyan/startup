@@ -17,21 +17,12 @@ import { useModels } from '../../hooks/useModels';
 import { connectWebSocket, onProgress } from '../../lib/websocket';
 import { apiErrorMessage, apiErrorStatus } from '../../lib/apiError';
 import { toast } from '../../stores/toast.store';
-import { isTypeAvailable, STYLE_PRESETS, applyStyle } from '../../lib/generation';
+import { isTypeAvailable, STYLE_PRESETS, applyStyle, TYPE_LABELS } from '../../lib/generation';
 import Button from '../../components/common/Button';
 import Card from '../../components/common/Card';
 import Select from '../../components/common/Select';
 import { useStyles } from '../../lib/useStyles';
 import { generateStyles } from './styles';
-
-const TYPE_LABELS: Record<string, string> = {
-  TEXT_TO_IMAGE: 'Text to Image',
-  TEXT_TO_VIDEO: 'Text to Video',
-  TEXT_TO_3D: 'Text to 3D',
-  BACKGROUND_REMOVAL: 'Remove Background',
-  UPSCALE: 'Upscale',
-  INPAINT: 'Inpaint / Edit',
-};
 
 const PROMPTLESS_TYPES = new Set(['BACKGROUND_REMOVAL', 'UPSCALE']);
 

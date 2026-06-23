@@ -12,6 +12,23 @@ export const AVAILABLE_TYPES: ReadonlySet<GenerationType> = new Set<GenerationTy
 
 export const isTypeAvailable = (type: GenerationType): boolean => AVAILABLE_TYPES.has(type);
 
+/** Human-friendly labels for every generation type. */
+export const TYPE_LABELS: Record<GenerationType, string> = {
+  TEXT_TO_IMAGE: 'Text to Image',
+  IMAGE_TO_IMAGE: 'Image to Image',
+  TEXT_TO_VIDEO: 'Text to Video',
+  IMAGE_TO_VIDEO: 'Image to Video',
+  TEXT_TO_3D: 'Text to 3D',
+  BACKGROUND_REMOVAL: 'Remove Background',
+  UPSCALE: 'Upscale',
+  INPAINT: 'Inpaint / Edit',
+  STYLE_TRANSFER: 'Style Transfer',
+};
+
+/** Label for a type string, falling back to a tidied version of the raw value. */
+export const typeLabel = (type: string): string =>
+  TYPE_LABELS[type as GenerationType] ?? type.replaceAll('_', ' ').toLowerCase();
+
 /**
  * Prompt-enhancing style presets for text-to-image. They are model-agnostic — the
  * chosen suffix is appended to the user's prompt, so they work with the free
