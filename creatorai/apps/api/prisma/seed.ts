@@ -52,6 +52,20 @@ async function main() {
         sortOrder: 2,
       },
       {
+        // Image-to-Image (transform an uploaded image with a prompt). Gated in the UI
+        // until Replicate billing is enabled — provider img2img handling is the
+        // remaining "billing-later" task (pass the input image to the model).
+        slug: 'sdxl-img2img',
+        name: 'SDXL (Image to Image)',
+        provider: 'replicate',
+        providerModelId: 'stability-ai/sdxl:39ed52f2a78e934b3ba6e2a89f5b1c712de7dfea535525255b1aa35c5565e08b',
+        type: 'IMAGE_TO_IMAGE',
+        creditCost: 4,
+        description: 'Transform an uploaded image with a text prompt (requires Replicate billing)',
+        tags: ['editing', 'image', 'premium'],
+        sortOrder: 3,
+      },
+      {
         slug: 'rembg',
         name: 'Remove Background',
         provider: 'replicate',

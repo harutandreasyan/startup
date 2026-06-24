@@ -1,5 +1,22 @@
 # 06 — AI Model Integration
 
+## Tool availability — current state (2026-06-24)
+What works **free** today vs. what's **gated** ("coming soon") behind Replicate billing.
+Single source of truth on the web: `apps/web/src/lib/generation.ts` (`AVAILABLE_TYPES`,
+`isTypeAvailable`, `CLIENT_SIDE_TYPES`, `isClientSide`).
+
+| Tool | Status | How |
+|---|---|---|
+| Text to Image | ✅ Free | Pollinations (server-side), no key. Plus client-side **style presets** (`STYLE_PRESETS` / `applyStyle`) that enhance the prompt. |
+| Background Removal | ✅ Free | Runs **fully in-browser** via `@imgly/background-removal` (`components/tools/BackgroundRemover`). No backend, no credits, no upload — the image never leaves the device. (Confirm its license for commercial use.) |
+| Image to Image | ⏳ Gated | Replicate `sdxl-img2img` seeded; UI shows "coming soon". Remaining billing-later work: provider img2img handling (pass the uploaded image to the model) + image upload/storage. |
+| Upscale | ⏳ Gated | Replicate `real-esrgan` seeded; gated. |
+| Inpaint / Edit | ⏳ Gated | gated; needs model + mask UI. |
+| Text to Video / 3D | ⏳ Gated | gated; need Replicate (+ providers). |
+
+Gating prevents users spending credits on tools that would fail. To unlock a gated tool
+once billing is on: add its type to `AVAILABLE_TYPES`.
+
 ## Provider Tiers: Free (now) vs Paid (future)
 
 To develop without spending money, the app currently uses **Pollinations.ai** for

@@ -13,6 +13,15 @@ export default defineConfig({
     dedupe: ['react', 'react-dom'],
   },
   optimizeDeps: {
-    include: ['react', 'react-dom', 'lucide-react', 'framer-motion'],
+    // The workspace packages ship CommonJS (so the Node API can run them in prod);
+    // include them here so Vite pre-bundles CJS→ESM for the browser in dev.
+    include: [
+      'react',
+      'react-dom',
+      'lucide-react',
+      'framer-motion',
+      '@creatorai/shared',
+      '@creatorai/api-client',
+    ],
   },
 })

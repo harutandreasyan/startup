@@ -1,4 +1,5 @@
 import { Body, Controller, Delete, Get, Headers, Post, Req, UseGuards } from '@nestjs/common';
+import { SkipThrottle } from '@nestjs/throttler';
 import type { Request } from 'express';
 import { AuthGuard } from '../../common/guards/auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
@@ -32,7 +33,9 @@ export class PaymentsController {
     return this.paymentsService.cancelActiveSubscription(user.id);
   }
 
+  // Stripe may legitimately burst events — never rate-limit the webhook.
   @Post('payments/stripe/webhook')
+  @SkipThrottle()
   async stripeWebhook(
     @Req() req: Request & { rawBody?: Buffer },
     @Headers('stripe-signature') signature: string,

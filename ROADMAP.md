@@ -107,7 +107,7 @@
   - [~] Image style presets (free, Pollinations) — **done**; real extra models (Flux Dev, SDXL, DALL-E 3) need Replicate/OpenAI billing
   - [ ] Add video generation (Kling, Wan) — *gated "coming soon", needs Replicate billing*
   - [ ] Add 3D generation (TripoSR) — *gated "coming soon", needs Replicate billing*
-  - [ ] Add image editing (background removal, upscale, inpainting) — *gated "coming soon", needs Replicate billing*
+  - [~] Add image editing — **Background Removal LIVE & FREE** (runs in-browser via `@imgly/background-removal`, no key/cost, upload-based); Image-to-Image + upscale + inpainting gated "coming soon" (Replicate, configs ready, needs billing)
 
 - [ ] **Web App Expansion**
   - [ ] Video generation UI + player — *gated coming-soon*
@@ -151,7 +151,8 @@
 ## Phase 6: Launch (Weeks 17-20)
 > Goal: Polish, marketing site, public launch
 
-- [ ] **Deployment** — [Guide](docs/10-DEPLOYMENT.md)
+- [~] **Deployment** — [Guide](docs/10-DEPLOYMENT.md) · **production config DONE 2026-06-23** → step-by-step in [DEPLOY-GUIDE.md](creatorai/DEPLOY-GUIDE.md)
+  > Config ready & verified credential-free: root `Dockerfile` + `railway.json`, `apps/web/vercel.json`, `/health`, `start:prod` (migrate-on-deploy), prod env templates. Also fixed a monorepo prod-build blocker (shared/api-client now compile to CommonJS). Remaining items below are the account-setup steps the founder does.
   - [ ] Set up production Railway deployment
   - [ ] Set up Vercel production deployment
   - [ ] Configure custom domain + SSL

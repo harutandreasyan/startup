@@ -1,5 +1,22 @@
 # 11 — Security
 
+## Current implementation status (2026-06-24)
+Implemented and verified in `apps/api`:
+- **Rate limiting ENFORCED.** `ThrottlerModule.forRoot([{ttl:60000, limit:100}])` + a global
+  `ThrottlerGuard` registered via `APP_GUARD` in `app.module.ts` (the module alone did NOT
+  enforce — the guard is what applies it). Tighter per-route limits via `@Throttle`:
+  `/auth/register` 5/min, `/auth/login` 10/min (brute-force protection). `@SkipThrottle` on
+  the Stripe webhook (`/payments/stripe/webhook`) and `/health` (uptime monitors). Verified:
+  11th rapid login → HTTP 429.
+- **Security headers** via `helmet` in `main.ts` (HSTS, X-Frame-Options, X-Content-Type-Options,
+  X-DNS-Prefetch-Control, COOP; `X-Powered-By` removed). CSP disabled (JSON API); CORP set to
+  `cross-origin` so the SPA can call it.
+- **Input validation:** global `ValidationPipe({ whitelist, forbidNonWhitelisted, transform })`.
+- **CORS:** locked to `CORS_ORIGINS` in production; any `localhost:*` allowed only in dev.
+- **Auth:** Supabase JWT verified by `AuthGuard`; webhook signatures verified with `STRIPE_WEBHOOK_SECRET`.
+
+Still open (future): OpenAI prompt moderation, automated dependency scanning, secrets rotation.
+
 ## Authentication & Authorization
 
 - [ ] JWT tokens via Supabase Auth (short-lived: 1 hour)

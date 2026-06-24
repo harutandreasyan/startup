@@ -1,0 +1,15 @@
+# Build the image from clean sources — never copy host artifacts.
+**/node_modules
+**/dist
+**/.turbo
+.turbo
+.git
+.gitignore
+**/.env
+**/.env.*
+!**/.env.production.example
+*.log
+**/*.log
+.DS_Store
+apps/web/dist
+.test-account

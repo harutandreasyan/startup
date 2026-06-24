@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
-import { ThrottlerModule } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { BullModule } from '@nestjs/bullmq';
 import { getRedisConnection } from './config/queue';
 import { AuthModule } from './modules/auth/auth.module';
@@ -24,5 +25,7 @@ import { HealthController } from './health.controller';
     ModelsModule,
   ],
   controllers: [HealthController],
+  // Enforce the configured rate limit globally (the module alone doesn't apply it).
+  providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })
 export class AppModule {}

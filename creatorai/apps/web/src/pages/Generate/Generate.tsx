@@ -17,10 +17,11 @@ import { useModels } from '../../hooks/useModels';
 import { connectWebSocket, onProgress } from '../../lib/websocket';
 import { apiErrorMessage, apiErrorStatus } from '../../lib/apiError';
 import { toast } from '../../stores/toast.store';
-import { isTypeAvailable, STYLE_PRESETS, applyStyle, TYPE_LABELS } from '../../lib/generation';
+import { isTypeAvailable, isClientSide, STYLE_PRESETS, applyStyle, TYPE_LABELS } from '../../lib/generation';
 import Button from '../../components/common/Button';
 import Card from '../../components/common/Card';
 import Select from '../../components/common/Select';
+import BackgroundRemover from '../../components/tools/BackgroundRemover';
 import { useStyles } from '../../lib/useStyles';
 import { generateStyles } from './styles';
 
@@ -199,6 +200,26 @@ export default function Generate() {
             </Link>
           </div>
         </Card>
+      </div>
+    );
+  }
+
+  // Client-side tools (e.g. Background Removal): the image is processed in the browser,
+  // no model/prompt/credits — render the dedicated uploader instead of the form.
+  if (isClientSide(type)) {
+    return (
+      <div className={styles.page}>
+        <div className={styles.header}>
+          <div>
+            <h1 className={styles.title}>{TYPE_LABELS[type] || 'Generate'}</h1>
+            <p className={styles.subtitle}>Upload an image — free, instant, processed on your device.</p>
+          </div>
+          <span className={styles.creditPill}>
+            <Gem className={styles.creditIcon} />
+            {user?.creditBalance ?? 0}
+          </span>
+        </div>
+        <BackgroundRemover />
       </div>
     );
   }

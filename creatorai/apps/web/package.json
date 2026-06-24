@@ -12,6 +12,7 @@
   "dependencies": {
     "@creatorai/api-client": "*",
     "@creatorai/shared": "*",
+    "@imgly/background-removal": "^1.7.0",
     "@supabase/supabase-js": "^2.49.0",
     "@tanstack/react-query": "^5.75.0",
     "framer-motion": "^12.40.0",

@@ -2,11 +2,16 @@ import 'reflect-metadata';
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { WsAdapter } from '@nestjs/platform-ws';
+import helmet from 'helmet';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { rawBody: true });
   app.useWebSocketAdapter(new WsAdapter(app));
+
+  // Security headers. CSP is disabled — this is a JSON API consumed cross-origin by
+  // the SPA, so a page-level content policy doesn't apply and would only risk breakage.
+  app.use(helmet({ contentSecurityPolicy: false, crossOriginResourcePolicy: { policy: 'cross-origin' } }));
 
   const allowedOrigins = (process.env.CORS_ORIGINS || 'http://localhost:5180').split(',');
   const isDev = process.env.NODE_ENV !== 'production';
@@ -31,8 +36,9 @@ async function bootstrap() {
     }),
   );
 
-  const port = process.env.PORT || 3000;
-  await app.listen(port);
+  const port = Number(process.env.PORT) || 3000;
+  // Bind to 0.0.0.0 so the app is reachable inside containers (Railway, Docker).
+  await app.listen(port, '0.0.0.0');
   console.log(`API running on http://localhost:${port}`);
 }
 

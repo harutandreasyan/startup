@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import {
   Image as ImageIcon,
+  ImagePlus,
   Clapperboard,
   Box,
   Scissors,
@@ -31,9 +32,10 @@ interface Action {
 
 const ACTIONS: Action[] = [
   { type: 'TEXT_TO_IMAGE', label: 'Text to Image', desc: 'Generate images from prompts', icon: ImageIcon, tint: { c1: '#7c5cff', c2: '#d946ef' } },
+  { type: 'IMAGE_TO_IMAGE', label: 'Image to Image', desc: 'Transform your own images', icon: ImagePlus, tint: { c1: '#7c5cff', c2: '#22d3ee' } },
+  { type: 'BACKGROUND_REMOVAL', label: 'Remove Background', desc: 'Erase backgrounds instantly', icon: Scissors, tint: { c1: '#22d3ee', c2: '#3dd68c' } },
   { type: 'TEXT_TO_VIDEO', label: 'Text to Video', desc: 'Create video clips from text', icon: Clapperboard, tint: { c1: '#4f7cff', c2: '#22d3ee' } },
   { type: 'TEXT_TO_3D', label: 'Text to 3D', desc: 'Generate 3D models from text', icon: Box, tint: { c1: '#d946ef', c2: '#7c5cff' } },
-  { type: 'BACKGROUND_REMOVAL', label: 'Remove Background', desc: 'Erase backgrounds instantly', icon: Scissors, tint: { c1: '#22d3ee', c2: '#3dd68c' } },
   { type: 'UPSCALE', label: 'Upscale', desc: 'Enhance image resolution', icon: Maximize2, tint: { c1: '#8b5cf6', c2: '#22d3ee' } },
   { type: 'INPAINT', label: 'Inpaint / Edit', desc: 'Edit parts of an image', icon: Brush, tint: { c1: '#ec4899', c2: '#7c5cff' } },
 ];

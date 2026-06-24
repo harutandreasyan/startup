@@ -1,5 +1,26 @@
 # 08 — Web Application (React + Vite)
 
+## Architecture as built (2026-06-24)
+- **Component structure:** every component/page lives in its own folder with
+  `index.ts` (`export { default } from './<Name>'`), `<Name>.tsx` (**default export**),
+  and `styles.ts`. Tailwind class strings live in `styles.ts` and are pulled in via a
+  `useStyles`/`cx` helper (`src/lib/useStyles.ts`) — react-jss-like ergonomics, still
+  Tailwind, zero runtime CSS. Components are imported as **default imports**.
+- **Styling:** Tailwind v4 + semantic CSS-variable tokens, light/dark via `.dark` class.
+- **State/data:** Zustand stores + TanStack Query. Toasts via `stores/toast.store` + `<Toaster/>`.
+- **Page transitions:** each page owns ONE entrance animation (CSS `animate-fade-in-up`, or a
+  framer-motion stagger on Dashboard/Gallery). The old `AnimatePresence`-around-`<Outlet/>`
+  wrapper was REMOVED (it double-mounted pages). Don't reintroduce it.
+- **Tools:** Generate page routes by `?type=`. Free: Text-to-Image (+ style presets),
+  Background Removal (in-browser, `components/tools/BackgroundRemover`). Gated paid tools show
+  a "coming soon" panel. Availability source of truth: `src/lib/generation.ts`.
+- **Other pages:** Credits (plans + packs + **usage stats** from `GET /users/me/stats** + tx
+  history), Settings (profile w/ required name, email change, delete account), Gallery.
+- **Auth forms:** custom in-app validation (no native browser bubbles — `noValidate` + inline
+  field errors).
+- **Build note:** workspace packages compile to CommonJS; `vite.config.ts` `optimizeDeps.include`
+  must list `@creatorai/shared` + `@creatorai/api-client` (see docs/02 / project memory).
+
 ## Tech Stack
 - React 19 + TypeScript
 - Vite (build tool)

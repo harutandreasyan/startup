@@ -1,16 +1,29 @@
 import type { GenerationType } from '@creatorai/shared';
 
 /**
- * Generation types that work today with zero external billing (free Pollinations
- * image generation). Every other type is wired to Replicate, which needs billing
- * enabled — until then we present those tools as "coming soon" rather than letting
- * a user spend credits on a request that would fail.
+ * Generation types that work today with zero external billing:
+ *  - TEXT_TO_IMAGE → free Pollinations image generation (server-side)
+ *  - BACKGROUND_REMOVAL → runs an AI model fully in the browser (free, no key/cost)
+ * Every other type is wired to Replicate, which needs billing enabled — until then
+ * we present those tools as "coming soon" rather than letting a user spend credits
+ * on a request that would fail.
  */
 export const AVAILABLE_TYPES: ReadonlySet<GenerationType> = new Set<GenerationType>([
   'TEXT_TO_IMAGE',
+  'BACKGROUND_REMOVAL',
 ]);
 
 export const isTypeAvailable = (type: GenerationType): boolean => AVAILABLE_TYPES.has(type);
+
+/**
+ * Tools that run entirely in the browser (no backend, no credits) — the user uploads
+ * an image and we process it locally. Free and private (the image never leaves the device).
+ */
+export const CLIENT_SIDE_TYPES: ReadonlySet<GenerationType> = new Set<GenerationType>([
+  'BACKGROUND_REMOVAL',
+]);
+
+export const isClientSide = (type: GenerationType): boolean => CLIENT_SIDE_TYPES.has(type);
 
 /** Human-friendly labels for every generation type. */
 export const TYPE_LABELS: Record<GenerationType, string> = {
