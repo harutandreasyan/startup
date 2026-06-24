@@ -9,8 +9,8 @@ Single source of truth on the web: `apps/web/src/lib/generation.ts` (`AVAILABLE_
 |---|---|---|
 | Text to Image | ✅ Free | Pollinations (server-side), no key. Plus client-side **style presets** (`STYLE_PRESETS` / `applyStyle`) that enhance the prompt. |
 | Background Removal | ✅ Free | Runs **fully in-browser** via `@imgly/background-removal` (`components/tools/BackgroundRemover`). No backend, no credits, no upload — the image never leaves the device. (Confirm its license for commercial use.) |
+| Upscale (2×) | ✅ Free | Runs **fully in-browser** via UpscalerJS + TensorFlow.js (`components/tools/ImageUpscaler`), ESRGAN 2× model. No backend/credits/upload; large inputs capped (`MAX_INPUT_DIM`) + tiled (`patchSize`) to limit memory. (The Replicate `real-esrgan` model stays seeded as an optional higher-quality paid path.) |
 | Image to Image | ⏳ Gated | Replicate `sdxl-img2img` seeded; UI shows "coming soon". Remaining billing-later work: provider img2img handling (pass the uploaded image to the model) + image upload/storage. |
-| Upscale | ⏳ Gated | Replicate `real-esrgan` seeded; gated. |
 | Inpaint / Edit | ⏳ Gated | gated; needs model + mask UI. |
 | Text to Video / 3D | ⏳ Gated | gated; need Replicate (+ providers). |
 

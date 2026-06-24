@@ -22,8 +22,15 @@ import Button from '../../components/common/Button';
 import Card from '../../components/common/Card';
 import Select from '../../components/common/Select';
 import BackgroundRemover from '../../components/tools/BackgroundRemover';
+import ImageUpscaler from '../../components/tools/ImageUpscaler';
 import { useStyles } from '../../lib/useStyles';
 import { generateStyles } from './styles';
+
+// In-browser tools, rendered by type (no backend / credits).
+const CLIENT_TOOLS: Partial<Record<GenerationType, React.ComponentType>> = {
+  BACKGROUND_REMOVAL: BackgroundRemover,
+  UPSCALE: ImageUpscaler,
+};
 
 const PROMPTLESS_TYPES = new Set(['BACKGROUND_REMOVAL', 'UPSCALE']);
 
@@ -207,6 +214,7 @@ export default function Generate() {
   // Client-side tools (e.g. Background Removal): the image is processed in the browser,
   // no model/prompt/credits — render the dedicated uploader instead of the form.
   if (isClientSide(type)) {
+    const Tool = CLIENT_TOOLS[type];
     return (
       <div className={styles.page}>
         <div className={styles.header}>
@@ -219,7 +227,7 @@ export default function Generate() {
             {user?.creditBalance ?? 0}
           </span>
         </div>
-        <BackgroundRemover />
+        {Tool && <Tool />}
       </div>
     );
   }

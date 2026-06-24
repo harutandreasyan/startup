@@ -107,7 +107,7 @@
   - [~] Image style presets (free, Pollinations) — **done**; real extra models (Flux Dev, SDXL, DALL-E 3) need Replicate/OpenAI billing
   - [ ] Add video generation (Kling, Wan) — *gated "coming soon", needs Replicate billing*
   - [ ] Add 3D generation (TripoSR) — *gated "coming soon", needs Replicate billing*
-  - [~] Add image editing — **Background Removal LIVE & FREE** (runs in-browser via `@imgly/background-removal`, no key/cost, upload-based); Image-to-Image + upscale + inpainting gated "coming soon" (Replicate, configs ready, needs billing)
+  - [~] Add image editing — **Background Removal + Upscale (2×) LIVE & FREE** (both run in-browser, no key/cost, upload-based: `@imgly/background-removal` + UpscalerJS/TensorFlow.js); Image-to-Image + inpainting gated "coming soon" (Replicate, configs ready, needs billing)
 
 - [ ] **Web App Expansion**
   - [ ] Video generation UI + player — *gated coming-soon*

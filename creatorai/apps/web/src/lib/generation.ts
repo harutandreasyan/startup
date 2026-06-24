@@ -11,6 +11,7 @@ import type { GenerationType } from '@creatorai/shared';
 export const AVAILABLE_TYPES: ReadonlySet<GenerationType> = new Set<GenerationType>([
   'TEXT_TO_IMAGE',
   'BACKGROUND_REMOVAL',
+  'UPSCALE',
 ]);
 
 export const isTypeAvailable = (type: GenerationType): boolean => AVAILABLE_TYPES.has(type);
@@ -21,6 +22,7 @@ export const isTypeAvailable = (type: GenerationType): boolean => AVAILABLE_TYPE
  */
 export const CLIENT_SIDE_TYPES: ReadonlySet<GenerationType> = new Set<GenerationType>([
   'BACKGROUND_REMOVAL',
+  'UPSCALE',
 ]);
 
 export const isClientSide = (type: GenerationType): boolean => CLIENT_SIDE_TYPES.has(type);
