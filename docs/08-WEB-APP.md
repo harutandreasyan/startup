@@ -16,6 +16,9 @@
   a "coming soon" panel. Availability source of truth: `src/lib/generation.ts`.
 - **Other pages:** Credits (plans + packs + **usage stats** from `GET /users/me/stats** + tx
   history), Settings (profile w/ required name, email change, delete account), Gallery.
+- **Gallery:** per-tool **filter chips** (All + one per generation type present, with counts;
+  auto-includes video later). Client-tool results (background removal, upscale) are saved via
+  `POST /generations/import` (0 credits, provider 'client') and appear alongside other creations.
 - **Auth forms:** custom in-app validation (no native browser bubbles — `noValidate` + inline
   field errors).
 - **Build note:** workspace packages compile to CommonJS; `vite.config.ts` `optimizeDeps.include`

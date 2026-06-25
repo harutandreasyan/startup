@@ -45,4 +45,30 @@ export class StorageService {
   buildGenerationKey(generationId: string, index: number, ext = 'png'): string {
     return `generations/${generationId}/${index}.${ext}`;
   }
+
+  /** Whether R2 credentials are present. When false, callers store images inline. */
+  isConfigured(): boolean {
+    return !!(
+      process.env.R2_ACCOUNT_ID &&
+      process.env.R2_ACCESS_KEY_ID &&
+      process.env.R2_SECRET_ACCESS_KEY &&
+      process.env.R2_PUBLIC_URL
+    );
+  }
+
+  /** Upload a base64 data URL to R2 and return the public CDN URL. */
+  async ingestDataUrl(dataUrl: string, key: string): Promise<string> {
+    const match = /^data:([^;]+);base64,(.+)$/.exec(dataUrl);
+    if (!match) throw new Error('Invalid data URL');
+    const [, contentType, base64] = match;
+    await this.client.send(
+      new PutObjectCommand({
+        Bucket: this.bucket,
+        Key: key,
+        Body: Buffer.from(base64, 'base64'),
+        ContentType: contentType,
+      }),
+    );
+    return `${this.publicUrl}/${key}`;
+  }
 }

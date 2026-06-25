@@ -1,8 +1,11 @@
 import { useRef, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { UploadCloud, Download, RefreshCw, Loader2, AlertCircle } from 'lucide-react';
+import { importGeneration } from '@creatorai/api-client';
 import Card from '../../common/Card';
 import Button from '../../common/Button';
 import { toast } from '../../../stores/toast.store';
+import { scaleImage } from '../../../lib/image';
 import { useStyles } from '../../../lib/useStyles';
 import { backgroundRemoverStyles } from './styles';
 
@@ -13,6 +16,7 @@ import { backgroundRemoverStyles } from './styles';
  */
 export default function BackgroundRemover() {
   const styles = useStyles(backgroundRemoverStyles);
+  const queryClient = useQueryClient();
   const fileRef = useRef<HTMLInputElement>(null);
   const [originalUrl, setOriginalUrl] = useState('');
   const [resultUrl, setResultUrl] = useState('');
@@ -39,8 +43,20 @@ export default function BackgroundRemover() {
       // Lazy-loaded so the model bundle isn't in the initial app download.
       const { removeBackground } = await import('@imgly/background-removal');
       const blob = await removeBackground(file);
-      setResultUrl(URL.createObjectURL(blob));
-      toast.success('Background removed');
+      const url = URL.createObjectURL(blob);
+      setResultUrl(url);
+      // Save to the gallery (PNG to keep transparency). Non-fatal if it fails.
+      try {
+        const [image, thumbnail] = await Promise.all([
+          scaleImage(url, 1600, 'image/png', 0.92),
+          scaleImage(url, 512, 'image/png', 0.85),
+        ]);
+        await importGeneration({ type: 'BACKGROUND_REMOVAL', image, thumbnail });
+        queryClient.invalidateQueries({ queryKey: ['generations'] });
+        toast.success('Saved to gallery');
+      } catch {
+        toast.info('Done — but could not save to gallery');
+      }
     } catch {
       setError('Could not process this image. Try a different one.');
       toast.error('Background removal failed');

@@ -1,13 +1,13 @@
 import { useRef, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { UploadCloud, Download, RefreshCw, Loader2, AlertCircle } from 'lucide-react';
+import { importGeneration } from '@creatorai/api-client';
 import Card from '../../common/Card';
 import Button from '../../common/Button';
 import { toast } from '../../../stores/toast.store';
+import { scaleImage } from '../../../lib/image';
 import { useStyles } from '../../../lib/useStyles';
 import { imageUpscalerStyles } from './styles';
-
-// Guard against out-of-memory on huge inputs — upscaling 2× quadruples pixel count.
-const MAX_INPUT_DIM = 1280;
 
 interface Dims {
   w: number;
@@ -21,6 +21,7 @@ interface Dims {
  */
 export default function ImageUpscaler() {
   const styles = useStyles(imageUpscalerStyles);
+  const queryClient = useQueryClient();
   const fileRef = useRef<HTMLInputElement>(null);
   const [originalUrl, setOriginalUrl] = useState('');
   const [resultUrl, setResultUrl] = useState('');
@@ -60,11 +61,6 @@ export default function ImageUpscaler() {
     try {
       const img = await loadImage(url);
       setOrigDims({ w: img.naturalWidth, h: img.naturalHeight });
-      if (img.naturalWidth > MAX_INPUT_DIM || img.naturalHeight > MAX_INPUT_DIM) {
-        setError(`Image is large — please use one under ${MAX_INPUT_DIM}px on each side.`);
-        setProcessing(false);
-        return;
-      }
       // Lazy-loaded so TensorFlow.js + the model aren't in the initial app download.
       const [{ default: Upscaler }, { default: model }] = await Promise.all([
         import('upscaler'),
@@ -74,7 +70,18 @@ export default function ImageUpscaler() {
       const out = await upscaler.upscale(img, { patchSize: 64, padding: 2, output: 'base64' });
       setResultUrl(out);
       setOutDims({ w: img.naturalWidth * 2, h: img.naturalHeight * 2 });
-      toast.success('Image upscaled 2×');
+      // Save to the gallery (JPEG — no transparency, smaller). Non-fatal if it fails.
+      try {
+        const [image, thumbnail] = await Promise.all([
+          scaleImage(out, 1600, 'image/jpeg', 0.92),
+          scaleImage(out, 512, 'image/jpeg', 0.85),
+        ]);
+        await importGeneration({ type: 'UPSCALE', image, thumbnail });
+        queryClient.invalidateQueries({ queryKey: ['generations'] });
+        toast.success('Upscaled & saved to gallery');
+      } catch {
+        toast.info('Done — but could not save to gallery');
+      }
     } catch {
       setError('Could not upscale this image. Try a smaller one.');
       toast.error('Upscale failed');

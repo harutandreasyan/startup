@@ -2,6 +2,14 @@ export const galleryStyles = {
   root: 'space-y-6',
   title: 'text-2xl sm:text-3xl font-bold tracking-tight',
   subtitle: 'text-muted mt-1',
+  filterBar: 'flex flex-wrap gap-2 -mt-1',
+  filterChip: (active: boolean) =>
+    `inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+      active
+        ? 'bg-primary text-white border-primary'
+        : 'bg-surface-2 text-muted border-border hover:text-foreground hover:border-primary/40'
+    }`,
+  filterCount: 'opacity-70 tabular-nums',
   loadingWrap: 'flex items-center justify-center py-20 text-muted',
   loadingIcon: 'h-6 w-6 animate-spin',
   emptyCard: 'p-10 sm:p-16 flex flex-col items-center text-center',

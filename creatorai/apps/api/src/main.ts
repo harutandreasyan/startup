@@ -2,12 +2,18 @@ import 'reflect-metadata';
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { WsAdapter } from '@nestjs/platform-ws';
+import type { NestExpressApplication } from '@nestjs/platform-express';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, { rawBody: true });
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, { rawBody: true });
   app.useWebSocketAdapter(new WsAdapter(app));
+
+  // Allow base64 image payloads from client-side tools (background removal, upscale).
+  // Raw-body capture (for the Stripe webhook) is preserved by NestFactory's rawBody option.
+  app.useBodyParser('json', { limit: '12mb' });
+  app.useBodyParser('urlencoded', { limit: '12mb', extended: true });
 
   // Security headers. CSP is disabled — this is a JSON API consumed cross-origin by
   // the SPA, so a page-level content policy doesn't apply and would only risk breakage.

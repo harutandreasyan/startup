@@ -17,7 +17,8 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { listGenerations, deleteGeneration } from '@creatorai/api-client';
-import type { Generation } from '@creatorai/shared';
+import type { Generation, GenerationType } from '@creatorai/shared';
+import { typeLabel } from '../../lib/generation';
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import ConfirmModal from '../../components/common/ConfirmModal';
@@ -58,6 +59,7 @@ export default function Gallery() {
   const [confirmDeleteGen, setConfirmDeleteGen] = useState<Generation | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [menu, setMenu] = useState<{ gen: Generation; top: number; right: number } | null>(null);
+  const [filter, setFilter] = useState<GenerationType | 'ALL'>('ALL');
 
   const { data, isLoading } = useQuery({
     queryKey: ['generations'],
@@ -65,6 +67,10 @@ export default function Gallery() {
   });
   // Failed generations are never shown (the user is notified via toast instead).
   const generations = (data?.data ?? []).filter((g) => g.status !== 'FAILED');
+  // Filter chips — one per tool the user actually has results for (auto-includes
+  // future tools like video). Order follows first-seen.
+  const presentTypes = [...new Set(generations.map((g) => g.type))] as GenerationType[];
+  const shown = filter === 'ALL' ? generations : generations.filter((g) => g.type === filter);
 
   useEffect(() => {
     if (!menu) return;
@@ -115,6 +121,20 @@ export default function Gallery() {
         <p className={styles.subtitle}>Everything you've created, in one place.</p>
       </div>
 
+      {!isLoading && presentTypes.length > 1 && (
+        <div className={styles.filterBar}>
+          <button onClick={() => setFilter('ALL')} className={styles.filterChip(filter === 'ALL')}>
+            All <span className={styles.filterCount}>{generations.length}</span>
+          </button>
+          {presentTypes.map((t) => (
+            <button key={t} onClick={() => setFilter(t)} className={styles.filterChip(filter === t)}>
+              {typeLabel(t)}{' '}
+              <span className={styles.filterCount}>{generations.filter((g) => g.type === t).length}</span>
+            </button>
+          ))}
+        </div>
+      )}
+
       {isLoading && (
         <div className={styles.loadingWrap}>
           <Loader2 className={styles.loadingIcon} />
@@ -140,12 +160,13 @@ export default function Gallery() {
 
       {!isLoading && generations.length > 0 && (
         <motion.div
+          key={filter}
           variants={gridContainer}
           initial="hidden"
           animate="show"
           className={styles.grid}
         >
-          {generations.map((g) => {
+          {shown.map((g) => {
             const ready = g.status === 'COMPLETED' && !!g.thumbnailUrl;
             return (
               <motion.div

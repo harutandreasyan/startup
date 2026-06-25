@@ -11,6 +11,17 @@ export async function getGeneration(id: string): Promise<Generation> {
   return data;
 }
 
+/** Save a finished client-side tool result (background removal, upscale) to the gallery. */
+export async function importGeneration(input: {
+  type: string;
+  image: string;
+  thumbnail?: string;
+  prompt?: string;
+}): Promise<Generation> {
+  const { data } = await api.post('/generations/import', input);
+  return data;
+}
+
 export async function listGenerations(params?: {
   page?: number;
   limit?: number;

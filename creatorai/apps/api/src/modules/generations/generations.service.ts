@@ -2,14 +2,64 @@ import { Injectable, HttpException } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 import { PrismaService } from '../prisma/prisma.service';
+import { StorageService } from '../storage/storage.service';
 import { GENERATION_QUEUE, type GenerationJobData } from '../../config/queue';
+
+// Tools that run in the user's browser and POST their finished result back to be saved.
+const CLIENT_TOOL_TYPES = new Set(['BACKGROUND_REMOVAL', 'UPSCALE']);
 
 @Injectable()
 export class GenerationsService {
   constructor(
     private prisma: PrismaService,
+    private storage: StorageService,
     @InjectQueue(GENERATION_QUEUE) private generationQueue: Queue<GenerationJobData>,
   ) {}
+
+  /**
+   * Save a result produced entirely client-side (e.g. background removal, upscale).
+   * No credits, no queue — the image arrives finished as a base64 data URL. Stored in
+   * R2 when configured, otherwise kept inline (fine for local/MVP).
+   */
+  async importClientResult(
+    userId: string,
+    data: { type: string; image: string; thumbnail?: string; prompt?: string },
+  ) {
+    const { type, image, thumbnail, prompt } = data;
+    if (!CLIENT_TOOL_TYPES.has(type)) throw new HttpException('Unsupported tool type', 400);
+    if (!image?.startsWith('data:image/')) throw new HttpException('Invalid image', 400);
+    // base64 length ≈ bytes * 1.37 — cap ~10 MB of image.
+    if (image.length > 14_000_000) throw new HttpException('Image too large', 413);
+
+    const gen = await this.prisma.generation.create({
+      data: {
+        userId,
+        type: type as any,
+        model: 'browser',
+        provider: 'client',
+        prompt: prompt?.slice(0, 500),
+        params: {},
+        creditsCost: 0,
+        status: 'COMPLETED',
+        outputUrls: [],
+        completedAt: new Date(),
+      },
+    });
+
+    let outputUrls = [image];
+    let thumbnailUrl = thumbnail || image;
+    if (this.storage.isConfigured()) {
+      outputUrls = [await this.storage.ingestDataUrl(image, this.storage.buildGenerationKey(gen.id, 0))];
+      thumbnailUrl = thumbnail
+        ? await this.storage.ingestDataUrl(thumbnail, `generations/${gen.id}/thumb.png`)
+        : outputUrls[0];
+    }
+
+    return this.prisma.generation.update({
+      where: { id: gen.id },
+      data: { outputUrls, thumbnailUrl },
+    });
+  }
 
   async create(userId: string, data: {
     type: string;

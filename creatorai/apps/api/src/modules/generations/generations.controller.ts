@@ -23,6 +23,15 @@ export class GenerationsController {
     return this.generationsService.create(user.id, body);
   }
 
+  // Save a finished client-side tool result (background removal, upscale) to the gallery.
+  @Post('import')
+  async importResult(
+    @CurrentUser() user: any,
+    @Body() body: { type: string; image: string; thumbnail?: string; prompt?: string },
+  ) {
+    return this.generationsService.importClientResult(user.id, body);
+  }
+
   @Get()
   async findAll(
     @CurrentUser() user: any,
