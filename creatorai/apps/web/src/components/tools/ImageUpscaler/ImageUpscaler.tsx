@@ -79,7 +79,8 @@ export default function ImageUpscaler() {
         await importGeneration({ type: 'UPSCALE', image, thumbnail });
         queryClient.invalidateQueries({ queryKey: ['generations'] });
         toast.success('Upscaled & saved to gallery');
-      } catch {
+      } catch (err) {
+        console.error('Save to gallery failed:', err);
         toast.info('Done — but could not save to gallery');
       }
     } catch {

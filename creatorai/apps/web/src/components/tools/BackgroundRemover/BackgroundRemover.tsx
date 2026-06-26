@@ -54,7 +54,8 @@ export default function BackgroundRemover() {
         await importGeneration({ type: 'BACKGROUND_REMOVAL', image, thumbnail });
         queryClient.invalidateQueries({ queryKey: ['generations'] });
         toast.success('Saved to gallery');
-      } catch {
+      } catch (err) {
+        console.error('Save to gallery failed:', err);
         toast.info('Done — but could not save to gallery');
       }
     } catch {
